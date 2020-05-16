@@ -1,0 +1,36 @@
+{
+  "name": "electron-quick-start",
+  "version": "1.0.0",
+  "description": "A minimal Electron application",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "rebuild-deps": "electron-builder install-app-deps"
+  },
+  "repository": "https://github.com/electron/electron-quick-start",
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "GitHub",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^8.3.0",
+    "electron-builder": "^22.6.0"
+  },
+  "dependencies": {
+    "@descript/web-audio-js": "^0.15.1",
+    "@discordjs/opus": "^0.3.2",
+    "discord.js": "^12.2.0",
+    "easy-ffmpeg": "^0.0.15",
+    "ffmpeg-static": "^4.2.1",
+    "libsodium-wrappers": "^0.7.6",
+    "speaker": "^0.5.1",
+    "stream-storage": "^0.0.5",
+    "vue": "^2.6.11",
+    "vuex": "^3.4.0"
+  }
+}

@@ -33,6 +33,7 @@
     "speaker": "^0.5.1",
     "stream-storage": "^0.0.5",
     "vue": "^2.6.11",
-    "vuex": "^3.4.0"
+    "vuex": "^3.4.0",
+    "vuex-electron": "^1.0.3"
   }
 }

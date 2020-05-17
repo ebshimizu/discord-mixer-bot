@@ -19,7 +19,8 @@
   "license": "CC0-1.0",
   "devDependencies": {
     "electron": "^8.3.0",
-    "electron-builder": "^22.6.0"
+    "electron-builder": "^22.6.0",
+    "vue-devtools": "^5.1.3"
   },
   "dependencies": {
     "@descript/web-audio-js": "^0.15.1",

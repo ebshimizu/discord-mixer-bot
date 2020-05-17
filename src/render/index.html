@@ -8,8 +8,10 @@
   <body>
     <div id="app">
       <hello-world></hello-world>
-      <el-button>test</el-button>
-      {{ count }}
+      <el-button v-on:click="discord">do the discord</el-button>
+      <el-button v-on:click="inc">increment (test)</el-button>
+      <p>{{ discordStatus }}</p>
+      <p>{{ count }}</p>
     </div>
 
     <script src="renderer.js"></script>

@@ -2,9 +2,11 @@ const Vue = require('vue/dist/vue.common');
 const Vuex = require('Vuex');
 const fs = require('fs-extra');
 const ElementUI = require('element-ui');
+const locale = require('element-ui/lib/locale/lang/en');
+
 const { ACTION } = require('../store/actions');
 
-Vue.use(ElementUI);
+Vue.use(ElementUI, { locale });
 Vue.use(Vuex);
 
 const store = new Vuex.Store(require('../store/store'));
@@ -24,27 +26,7 @@ for (const file of moduleFiles) {
 const app = new Vue({
   el: '#app',
   store,
-  data: {
-    message: 'Testing Vue',
-  },
-  computed: {
-    discordStatus: function () {
-      return this.$store.state.discord.ready;
-    },
-    count: function () {
-      return this.$store.state.count;
-    }
-  },
-  methods: {
-    discord() {
-      this.$store.dispatch(
-        ACTION.DISCORD_LOGIN,
-        'NzA5MDY0NDIxMDcwMzQwMTg3.Xrgd8A.V8VUWKouifEK0DGjXLEKzwGsk6o'
-      );
-    },
-    inc() {
-      this.$store.dispatch('inc');
-      console.log(this.$store.state.count);
-    }
-  },
+  data: {},
+  computed: {},
+  methods: {},
 });

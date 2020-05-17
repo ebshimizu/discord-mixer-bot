@@ -3,15 +3,16 @@
   <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="../../node_modules/element-ui/lib/theme-chalk/index.css" />
-    <title>Hello World!</title>
+    <link rel="stylesheet" href="style.css" />
+    <title>Discord Mixer Bot</title>
   </head>
   <body>
     <div id="app">
-      <hello-world></hello-world>
-      <el-button v-on:click="discord">do the discord</el-button>
-      <el-button v-on:click="inc">increment (test)</el-button>
-      <p>{{ discordStatus }}</p>
-      <p>{{ count }}</p>
+      <el-container class="main">
+        <el-header></el-header>
+        <el-main></el-main>
+      </el-container>
+      <discord-status></discord-status>
     </div>
 
     <script src="renderer.js"></script>

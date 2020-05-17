@@ -1,12 +1,14 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
+const ElectronStore = require('electron-store');
+const eStore = new ElectronStore();
 
 const Vue = require('Vue');
 const Vuex = require('Vuex');
 Vue.use(Vuex);
 const store = new Vuex.Store(require('../store/store'));
-const { ACTION } = require('../store/actions');
+const { ACTION, MUTATION } = require('../store/actions');
 
 const Discord = require('../modules/discordManager');
 const AudioEngine = require('../modules/audioEngine');
@@ -45,12 +47,6 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
-
-  // initialize the store
-  store.dispatch(ACTION.INIT_STATE, {
-    discord: Discord,
-    audio: new AudioEngine(),
-  });
 });
 
 // Quit when all windows are closed.
@@ -64,3 +60,14 @@ app.on('window-all-closed', function () {
 // code. You can also put them in separate files and require them here.
 // literally just dumping the entire test script here to see if it's possible
 // to run any of this in the electron main
+// initialize the store
+// may want an init event inside the store itself, not persisting all data
+if (eStore.get('discord.token')) {
+  console.log(eStore.get('discord.token'));
+  store.commit(MUTATION.DISCORD_SET_TOKEN, eStore.get('discord.token'));
+}
+
+store.dispatch(ACTION.INIT_STATE, {
+  discord: Discord,
+  audio: new AudioEngine(),
+});

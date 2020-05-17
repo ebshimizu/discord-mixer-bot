@@ -27,6 +27,7 @@
     "@discordjs/opus": "^0.3.2",
     "discord.js": "^12.2.0",
     "easy-ffmpeg": "^0.0.15",
+    "electron-store": "^5.1.1",
     "element-ui": "^2.13.1",
     "ffmpeg-static": "^4.2.1",
     "fs-extra": "^9.0.0",
@@ -35,6 +36,6 @@
     "stream-storage": "^0.0.5",
     "vue": "^2.6.11",
     "vuex": "^3.4.0",
-    "vuex-electron": "^1.0.3"
+    "vuex-electron": "ebshimizu/vuex-electron"
   }
 }

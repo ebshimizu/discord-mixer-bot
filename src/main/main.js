@@ -11,7 +11,7 @@ const store = new Vuex.Store(require('../store/store'));
 const { ACTION, MUTATION } = require('../store/actions');
 
 const Discord = require('../modules/discordManager');
-const AudioEngine = require('../modules/audioEngine');
+const { AudioEngine } = require('../modules/audioEngine');
 
 function createWindow() {
   // Create the browser window.

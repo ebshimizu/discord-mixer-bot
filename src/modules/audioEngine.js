@@ -12,6 +12,10 @@ const wae = require('@descript/web-audio-js');
 const AudioContext = wae.StreamAudioContext;
 const ffmpeg = require('easy-ffmpeg');
 const { v4: uuidv4 } = require('uuid');
+const Speaker = require('speaker');
+const fs = require('fs-extra');
+const { app } = require('electron');
+const path = require('path');
 
 const ResourceStatus = {
   INIT: 'Initializing',
@@ -43,15 +47,20 @@ class AudioSource {
     this._context = context;
     this._loop = true;
     this._srcNode = null;
+    this._tmpFileLocation = path.join(app.getPath('appData'), `${this._id}.tmp.wav`);
+
+    console.log(`tmp file location: ${this._tmpFileLocation}`);
   }
 
   get volume() {
     return this._outNode.gain.value;
   }
   set volume(val) {
-    this._outNode.exponentialRampToValueAtTime(
+    const now = this._context.currentTime;
+    this._outNode.gain.setValueAtTime(this._outNode.gain.value, now);
+    this._outNode.gain.exponentialRampToValueAtTime(
       val,
-      this._context.currentTime + 0.05
+      now + 0.016
     );
   }
 
@@ -86,14 +95,7 @@ class AudioSource {
     ffmpeg(this._locator)
       .toFormat('wav')
       .outputOptions(['-ac 2', '-ar 48000'])
-      .pipe(this._audioData, { end: true })
-      .on('data', function (chunk) {
-        self._audioData = Buffer.concat([self._audioData, chunk]);
-      })
-      .on('progress', function (prog) {
-        console.log(prog);
-        if (self._onProgress) self._onProgress(self._id, prog);
-      })
+      .save(this._tmpFileLocation)
       .on('error', function (err) {
         console.log(err);
         self.setStatus(ResourceStatus.ERROR);
@@ -102,12 +104,12 @@ class AudioSource {
       })
       .on('end', function () {
         self.setStatus(ResourceStatus.BUFFER);
-        self._context.decodeAudioData(self._audioData).then((audioBuffer) => {
-          self._audioBuffer = audioBuffer;
-          self.setStatus(ResourceStatus.READY);
-          if (self._onReady) {
-            self._onReady(self._id);
-          }
+        fs.readFile(self._tmpFileLocation, (err, data) => {
+          self._context.decodeAudioData(data).then((audioBuffer) => {
+            self._audioBuffer = audioBuffer;
+            self.setStatus(ResourceStatus.READY);
+            setTimeout(() => fs.unlink(self._tmpFileLocation), 1000);
+          });
         });
       });
   }
@@ -128,6 +130,8 @@ class AudioSource {
     this._srcNode.connect(this._outNode);
     this._srcNode.loop = this._loop;
     this._srcNode.start();
+
+    console.log(`Audio node ${this._id} playing...`);
   }
 
   stop() {
@@ -143,7 +147,7 @@ class AudioEngine {
     // master volume control
     this._masterGain = this._context.createGain();
     this._masterGain.connect(this._context.destination);
-    this._masterGain.gain.value = 1;
+    this._masterGain.gain.value = 0.9;
 
     // staging and live gains actually end up alternating;
     // don't want to swap things during playback.
@@ -164,28 +168,85 @@ class AudioEngine {
       submaster: this._subB,
     };
 
+    this._staged.submaster.gain.value = 0;
+    this._live.submaster.gain.value = 1;
+
     // internals
     this._locked = false; // will be true when a cue fade is happening
 
     // callbacks
     // default is just logging until I fill it in
     this._onSrcProgress = console.log;
-    this._onSrcReady = console.log;
     this._onSrcError = console.log;
     this._onSrcStatusChange = console.log;
+
+    // offline test
+    // this._context.pipe(new Speaker({ sampleRate: 48000 }));
+
+    this._context.resume();
   }
 
-  // need to figure out how to have the state interface with this
-  // get liveSources() {
-  //   return Array.from(this._live.sources);
-  // }
+  // maps sources to an object that can be shoved into the vuex state
+  // doesn't include any buffers for hopefully obvious reasons
+  getSourceInfo(sources) {
+    return sources.map((src) => {
+      return {
+        id: src._id,
+        type: src._type,
+        locator: src._locator,
+        status: src._status,
+        loop: src._loop,
+        volume: src.volume
+      };
+    });
+  }
+
+  get liveSources() {
+    return this.getSourceInfo(this._live.sources);
+  }
+
+  get stagedSources() {
+    return this.getSourceInfo(this._staged.sources);
+  }
+
+  get liveVolume() {
+    return this._live.submaster.gain.value;
+  }
+
+  get stagedVolume() {
+    return this._staged.submaster.gain.value;
+  }
+
+  get masterVolume() {
+    return this._masterGain.gain.value;
+  }
+
+  set liveVolume(vol) {
+    this._live.submaster.gain.exponentialRampToValueAtTime(
+      vol,
+      this._context.currentTime + 0.05
+    );
+  }
+
+  set stagedVolume(vol) {
+    this._staged.submaster.gain.exponentialRampToValueAtTime(
+      vol,
+      this._context.currentTime + 0.05
+    );
+  }
+
+  set masterVolume(vol) {
+    this._masterGain.gain.exponentialRampToValueAtTime(
+      vol,
+      this._context.currentTime + 0.05
+    );
+  }
 
   // things can't be directly loaded into live ever due to the load delay
   // with the current web audio library
   stageResource(locator, type) {
     const src = new AudioSource(this._context, locator, type, uuidv4());
     src._onProgress = this._onSrcProgress;
-    src._onReady = this._onSrcReady;
     src._onError = this._onSrcError;
     src._onStatusChange = this._onSrcStatusChange;
 
@@ -193,7 +254,7 @@ class AudioEngine {
     src.load();
   }
 
-  fadeStagedToLive(time) {
+  fadeStagedToLive(time, onComplete) {
     // connect the sources, if not all are ready refuse to change
     for (const source of this._staged.sources) {
       if (source._status !== ResourceStatus.READY) {
@@ -209,22 +270,28 @@ class AudioEngine {
       source.connect(this._staged.submaster);
       source.play();
     }
+    
+    console.log(this._context.currentTime);
 
-    this._staged.submaster.exponentialRampToValueAtTime(
+    const now = this._context.currentTime;
+    this._staged.submaster.gain.setValueAtTime(0.001, now);
+    this._live.submaster.gain.setValueAtTime(1, now);
+
+    this._staged.submaster.gain.exponentialRampToValueAtTime(
       1,
-      this._context.currentTime + time
+      now + time
     );
-    this._live.submaster.exponentialRampToValueAtTime(
+    this._live.submaster.gain.exponentialRampToValueAtTime(
       0.001,
-      this._context.currentTime + time
+      now + time
     );
 
     // set a callback
     const self = this;
-    setTimeout(() => self.swapStagedAndLive(), time * 1000);
+    setTimeout(() => self.swapStagedAndLive(onComplete), time * 1000);
   }
 
-  swapStagedAndLive() {
+  swapStagedAndLive(onComplete) {
     // at this point, live has faded out and staged is now live
     // disconnect all live sources
     for (const source of this._live.sources) {
@@ -240,12 +307,22 @@ class AudioEngine {
     const tmp = this._live.submaster;
     this._live.submaster = this._staged.submaster;
     this._staged.submaster = tmp;
+
+    if (onComplete)
+      onComplete();
   }
 
   setOutputStream(stream) {
+    // suspend rq
+    this._context.suspend();
     this._context.pipe(stream);
     this._context.resume();
+
+    console.log('Audio output stream changed');
   }
 }
 
-module.exports = AudioEngine;
+module.exports = {
+  AudioEngine,
+  ResourceStatus
+}

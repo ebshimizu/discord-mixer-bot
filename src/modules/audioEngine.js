@@ -77,33 +77,36 @@ class AudioSource {
 
   load() {
     // starts the loading process
-    console.log(`Loading media from ${locator}...`);
+    console.log(`Loading media from ${this._locator}...`);
 
     // assumes file for now
     this.setStatus(ResourceStatus.TRANS);
+    const self = this;
 
-    ffmpeg(locator)
+    ffmpeg(this._locator)
       .toFormat('wav')
       .outputOptions(['-ac 2', '-ar 48000'])
       .pipe(this._audioData, { end: true })
       .on('data', function (chunk) {
-        this._audioData = Buffer.concat([audioData, chunk]);
+        self._audioData = Buffer.concat([self._audioData, chunk]);
       })
       .on('progress', function (prog) {
-        if (this._onProgress) this._onProgress(this._id, prog);
+        console.log(prog);
+        if (self._onProgress) self._onProgress(self._id, prog);
       })
       .on('error', function (err) {
         console.log(err);
-        this._status = ResourceStatus.ERROR;
+        self.setStatus(ResourceStatus.ERROR);
 
-        if (this._onError) this._onError(this._id, err);
+        if (self._onError) self._onError(self._id, err);
       })
       .on('end', function () {
-        this.setStatus(ResourceStatus.BUFFER);
-        this._context.decodeAudioData(this._audioData).then((audioBuffer) => {
-          this._audioBuffer = audioBuffer;
-          if (this._onReady) {
-            this._onReady(id);
+        self.setStatus(ResourceStatus.BUFFER);
+        self._context.decodeAudioData(self._audioData).then((audioBuffer) => {
+          self._audioBuffer = audioBuffer;
+          self.setStatus(ResourceStatus.READY);
+          if (self._onReady) {
+            self._onReady(self._id);
           }
         });
       });
@@ -165,10 +168,11 @@ class AudioEngine {
     this._locked = false; // will be true when a cue fade is happening
 
     // callbacks
-    this._onSrcProgress = null;
-    this._onSrcReady = null;
-    this._onSrcError = null;
-    this._onSrcStatusChange = null;
+    // default is just logging until I fill it in
+    this._onSrcProgress = console.log;
+    this._onSrcReady = console.log;
+    this._onSrcError = console.log;
+    this._onSrcStatusChange = console.log;
   }
 
   // need to figure out how to have the state interface with this
@@ -182,8 +186,8 @@ class AudioEngine {
     const src = new AudioSource(this._context, locator, type, uuidv4());
     src._onProgress = this._onSrcProgress;
     src._onReady = this._onSrcReady;
-    src._onError = this._onError;
-    src._onStatusChange = this._onStatusChange;
+    src._onError = this._onSrcError;
+    src._onStatusChange = this._onSrcStatusChange;
 
     this._staged.sources.push(src);
     src.load();
@@ -216,7 +220,8 @@ class AudioEngine {
     );
 
     // set a callback
-    setTimeout(this.swapStagedAndLive, time * 1000);
+    const self = this;
+    setTimeout(() => self.swapStagedAndLive(), time * 1000);
   }
 
   swapStagedAndLive() {

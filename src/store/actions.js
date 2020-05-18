@@ -5,6 +5,7 @@ const ACTION = {
   DISCORD_JOIN_VOICE: 'Connect to Voice Channel',
   DISCORD_LEAVE_VOICE: 'Disconnect from Voice Channel',
   DISCORD_SET_TOKEN: 'Set bot token',
+  AUDIO_STAGE_FILE: 'Load and Stage Audio File'
 };
 
 const MUTATION = {
@@ -13,6 +14,7 @@ const MUTATION = {
   DISCORD_SET_BOT_INFO: 'Set bot info',
   DISCORD_SET_CHANNELS: 'Set available voice channels',
   DISCORD_CONNECTED_TO: 'Set current active voice channel',
+  INIT_AUDIO: 'Initialize Audio Engine',
 };
 
 module.exports = {

@@ -36,6 +36,29 @@ body {
 {
   width: 50%;
   flex-shrink: 0.5;
+  height: 100%;
+}
+
+#app #staging,
+#app #live
+{
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#app .playback .sources {
+  height: 100%;
+  flex-grow: 1;
+  overflow: auto;
+}
+
+#app #staging .stage-buttons {
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
 }
 
 #app .playback .center-controls {

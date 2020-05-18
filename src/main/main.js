@@ -16,8 +16,8 @@ const AudioEngine = require('../modules/audioEngine');
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1280,
+    height: 720,
     webPreferences: {
       nodeIntegration: true,
     },

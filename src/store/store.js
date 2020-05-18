@@ -27,6 +27,11 @@ module.exports = {
       voiceChannels: {},
       connectedTo: null,
     },
+    audio: {
+      staged: [],
+      live: [],
+      locked: false
+    }
   },
   getters: {},
   mutations: {
@@ -97,5 +102,8 @@ module.exports = {
       await discordManager.leaveChannel();
       context.commit(MUTATION.DISCORD_CONNECTED_TO, null);
     },
+    [ACTION.AUDIO_STAGE_FILE](context, file) {
+      audioEngine.stageResource(file, 'file');
+    }
   },
 };

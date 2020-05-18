@@ -1,22 +1,15 @@
 {
-  "name": "electron-quick-start",
+  "name": "discord-mixer-bot",
   "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "description": "A basic sound mixer/playback system that outputs through a Discord bot.",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
     "rebuild-deps": "electron-builder install-app-deps"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
-  "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
-  ],
-  "author": "GitHub",
-  "license": "CC0-1.0",
+  "repository": "https://github.com/ebshimizu/discord-mixer-bot",
+  "author": "Falindrith",
+  "license": "MIT",
   "devDependencies": {
     "electron": "^8.3.0",
     "electron-builder": "^22.6.0",

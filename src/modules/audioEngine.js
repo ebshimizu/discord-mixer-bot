@@ -25,6 +25,12 @@ const ResourceStatus = {
   ERROR: 'Error',
 };
 
+const SourceType = {
+  FILE: 'file',
+  URL: 'url',
+  YOUTUBE: 'youtube',
+};
+
 class AudioSource {
   constructor(context, locator, type, id) {
     // eventually type will indicate url or file and handle appropriately
@@ -32,6 +38,7 @@ class AudioSource {
     this._status = ResourceStatus.INIT;
     this._locator = locator;
     this._type = type;
+    this._name = this._id;
 
     // available callback hooks
     this._onProgress = null;
@@ -47,21 +54,33 @@ class AudioSource {
     this._context = context;
     this._loop = true;
     this._srcNode = null;
-    this._tmpFileLocation = path.join(app.getPath('appData'), `${this._id}.tmp.wav`);
+    this._tmpFileLocation = path.join(
+      app.getPath('appData'),
+      `${this._id}.tmp.wav`
+    );
 
+    this.setReadableName();
     console.log(`tmp file location: ${this._tmpFileLocation}`);
+  }
+
+  setReadableName() {
+    if (this._type === SourceType.FILE) {
+      // use the filename
+      this._name = path.basename(this._locator);
+    }
   }
 
   get volume() {
     return this._outNode.gain.value;
   }
   set volume(val) {
-    const now = this._context.currentTime;
-    this._outNode.gain.setValueAtTime(this._outNode.gain.value, now);
-    this._outNode.gain.exponentialRampToValueAtTime(
-      val,
-      now + 0.016
-    );
+    if (this._srcNode) {
+      const now = this._context.currentTime;
+      this._outNode.gain.setValueAtTime(this._outNode.gain.value, now);
+      this._outNode.gain.exponentialRampToValueAtTime(val, now + 0.016);
+    } else {
+      this._outNode.gain.value = val;
+    }
   }
 
   connect(dest) {
@@ -189,6 +208,9 @@ class AudioEngine {
   // maps sources to an object that can be shoved into the vuex state
   // doesn't include any buffers for hopefully obvious reasons
   getSourceInfo(sources) {
+    if (sources.length === 0)
+      return [];
+
     return sources.map((src) => {
       return {
         id: src._id,
@@ -196,9 +218,17 @@ class AudioEngine {
         locator: src._locator,
         status: src._status,
         loop: src._loop,
-        volume: src.volume
+        volume: src.volume,
+        name: src._name,
       };
     });
+  }
+
+  getSource(id) {
+    // search through all sources to find a corresponding id
+    return this._staged.sources
+      .concat(this._live.sources)
+      .find((source) => source._id === id);
   }
 
   get liveSources() {
@@ -242,6 +272,34 @@ class AudioEngine {
     );
   }
 
+  removeSource(id) {
+    const stagedIdx = this._staged.sources.findIndex((src) => src._id === id);
+    if (stagedIdx > -1) {
+      this.removeStaged(stagedIdx);
+      return;
+    }
+
+    const liveIdx = this._live.sources.findIndex((src) => src._id === id);
+    if (liveIdx > -1) {
+      this.removeLive(liveIdx);
+    }
+  }
+
+  removeStaged(srcIdx) {
+    if (srcIdx >= 0) {
+      this._staged.sources.splice(srcIdx, 1);
+    }
+  }
+
+  removeLive(srcIdx) {
+    if (srcIdx >= 0) {
+      // live sources need to stop first
+      this._live.sources[srcIdx].stop();
+      this._live.sources[srcIdx].disconnect();
+      this._live.sources.splice(srcIdx, 1);
+    }
+  }
+
   // things can't be directly loaded into live ever due to the load delay
   // with the current web audio library
   stageResource(locator, type) {
@@ -267,24 +325,20 @@ class AudioEngine {
 
     // connect and play all of the sources
     for (const source of this._staged.sources) {
+      console.log(`${source._name} vol: ${source.volume}`);
       source.connect(this._staged.submaster);
       source.play();
+      console.log(`${source._name} vol: ${source.volume}`);
     }
-    
+
     console.log(this._context.currentTime);
 
     const now = this._context.currentTime;
     this._staged.submaster.gain.setValueAtTime(0.001, now);
     this._live.submaster.gain.setValueAtTime(1, now);
 
-    this._staged.submaster.gain.exponentialRampToValueAtTime(
-      1,
-      now + time
-    );
-    this._live.submaster.gain.exponentialRampToValueAtTime(
-      0.001,
-      now + time
-    );
+    this._staged.submaster.gain.exponentialRampToValueAtTime(1, now + time);
+    this._live.submaster.gain.exponentialRampToValueAtTime(0.001, now + time);
 
     // set a callback
     const self = this;
@@ -308,8 +362,7 @@ class AudioEngine {
     this._live.submaster = this._staged.submaster;
     this._staged.submaster = tmp;
 
-    if (onComplete)
-      onComplete();
+    if (onComplete) onComplete();
   }
 
   setOutputStream(stream) {
@@ -324,5 +377,6 @@ class AudioEngine {
 
 module.exports = {
   AudioEngine,
-  ResourceStatus
-}
+  ResourceStatus,
+  SourceType,
+};

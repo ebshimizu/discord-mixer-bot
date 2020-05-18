@@ -7,6 +7,9 @@ const ACTION = {
   DISCORD_SET_TOKEN: 'Set bot token',
   AUDIO_STAGE_FILE: 'Load and Stage Audio File',
   AUDIO_MOVE_TO_LIVE: 'Move staged sources to live',
+  AUDIO_SRC_SET_VOLUME: 'Set audio source volume',
+  AUDIO_SRC_SET_LOOP: 'Set audio source loop',
+  AUDIO_SRC_REMOVE: 'Remove audio source',
 };
 
 const MUTATION = {
@@ -19,6 +22,8 @@ const MUTATION = {
   AUDIO_UPDATE_STAGED: 'Update staged sources',
   AUDIO_UPDATE_LIVE: 'Update live sources',
   AUDIO_SRC_STATUS_CHANGE: 'Audio Source Status Change',
+  AUDIO_SRC_SET_VOLUME: 'Set audio source volume',
+  AUDIO_SRC_SET_LOOP: 'Set audio source loop',
 };
 
 module.exports = {

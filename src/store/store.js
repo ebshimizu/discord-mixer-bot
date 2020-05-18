@@ -3,7 +3,7 @@ const { ACTION, MUTATION } = require('./actions');
 const ElectronStore = require('electron-store');
 const eStore = new ElectronStore();
 const { StreamStorage } = require('stream-storage');
-const { ResourceStatus } = require('../modules/audioEngine');
+const { ResourceStatus, SourceType } = require('../modules/audioEngine');
 
 // references to external apis n stuff
 let discordManager, audioEngine;
@@ -34,10 +34,19 @@ module.exports = {
       locked: false,
       stagedVolume: 1,
       liveVolume: 1,
-      masterVolume: 1
-    }
+      masterVolume: 1,
+    },
   },
-  getters: {},
+  getters: {
+    allSources: (state) => {
+      return state.audio.staged.concat(state.audio.live);
+    },
+    getSource: (state) => (id) => {
+      return state.audio.staged
+        .concat(state.audio.live)
+        .find((source) => source.id === id);
+    },
+  },
   mutations: {
     [MUTATION.DISCORD_SET_READY](state, ready) {
       state.discord.ready = ready;
@@ -72,18 +81,23 @@ module.exports = {
     [MUTATION.AUDIO_SRC_STATUS_CHANGE](state, srcData) {
       // find source in live or staged?
       // yes just because it's good practice
-      const stagedFound = state.audio.staged.find(src => src.id === srcData.id);
-      if (stagedFound) {
-        stagedFound.status = srcData.status;
-        return;
+      const found = this.getters.getSource(srcData.id);
+      if (found) {
+        found.status = srcData.status;
       }
-
-      // really shouldn't be touching live but JUST IN CASE
-      const liveFound = state.audio.live.find(src => src.id === srcData.id);
-      if (liveFound) {
-        liveFound.status = srcData.status;
+    },
+    [MUTATION.AUDIO_SRC_SET_VOLUME](state, srcData) {
+      const found = this.getters.getSource(srcData.id);
+      if (found) {
+        found.volume = srcData.volume;
       }
-    }
+    },
+    [MUTATION.AUDIO_SRC_SET_LOOP](state, srcData) {
+      const found = this.getters.getSource(srcData.id);
+      if (found) {
+        found.loop = srcData.loop;
+      }
+    },
   },
   actions: {
     [ACTION.INIT_STATE](context, init) {
@@ -94,7 +108,7 @@ module.exports = {
       // on progress seems to not give any output for audio, so let it log until i see something
       audioEngine._onSrcStatusChange = (id, status) => {
         context.commit(MUTATION.AUDIO_SRC_STATUS_CHANGE, { id, status });
-      }
+      };
       // errors may have some handling in-app, but for now let the source component display
 
       context.commit(MUTATION.INIT_AUDIO);
@@ -132,7 +146,12 @@ module.exports = {
       if (connected) {
         context.commit(MUTATION.DISCORD_CONNECTED_TO, channelInfo.id);
         // TODO: ACTUAL HANDLERS
-        discordManager.connectDiscordAudioStream(duplexStream, console.log, console.log, console.log);
+        discordManager.connectDiscordAudioStream(
+          duplexStream,
+          console.log,
+          console.log,
+          console.log
+        );
         audioEngine.setOutputStream(duplexStream);
       }
     },
@@ -141,7 +160,7 @@ module.exports = {
       context.commit(MUTATION.DISCORD_CONNECTED_TO, null);
     },
     [ACTION.AUDIO_STAGE_FILE](context, file) {
-      audioEngine.stageResource(file, 'file');
+      audioEngine.stageResource(file, SourceType.FILE);
       context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
     },
     [ACTION.AUDIO_MOVE_TO_LIVE](context, opts) {
@@ -151,7 +170,27 @@ module.exports = {
         // swap the sources
         context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
         context.commit(MUTATION.AUDIO_UPDATE_LIVE, audioEngine.liveSources);
-      })
-    }
+      });
+    },
+    [ACTION.AUDIO_SRC_SET_VOLUME](context, srcData) {
+      // relay
+      const src = audioEngine.getSource(srcData.id);
+      if (src) {
+        src.volume = srcData.volume;
+        context.commit(MUTATION.AUDIO_SRC_SET_VOLUME, srcData);
+      }
+    },
+    [ACTION.AUDIO_SRC_SET_LOOP](context, srcData) {
+      const src = audioEngine.getSource(srcData.id);
+      if (src) {
+        src.loop(srcData.loop);
+        context.commit(MUTATION.AUDIO_SRC_SET_LOOP, srcData);
+      }
+    },
+    [ACTION.AUDIO_SRC_REMOVE](context, id) {
+      audioEngine.removeSource(id);
+      context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
+      context.commit(MUTATION.AUDIO_UPDATE_LIVE, audioEngine.liveSources);
+    },
   },
 };

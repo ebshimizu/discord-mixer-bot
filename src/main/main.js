@@ -63,7 +63,6 @@ app.on('window-all-closed', function () {
 // initialize the store
 // may want an init event inside the store itself, not persisting all data
 if (eStore.get('discord.token')) {
-  console.log(eStore.get('discord.token'));
   store.commit(MUTATION.DISCORD_SET_TOKEN, eStore.get('discord.token'));
 }
 

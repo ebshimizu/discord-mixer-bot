@@ -12,7 +12,58 @@ body {
 }
 
 #app {
+  height: 100vh;
+}
+
+/* playback window and components */
+#app .el-container {
   height: 100%;
+}
+
+#app .el-main {
+  margin-bottom: 30px;
+  padding: 0;
+}
+
+#app .playback {
+  height: 100%;
+  width: 100%;
+  display: flex;
+}
+
+#app .playback .pb-staging,
+#app .playback .pb-live
+{
+  width: 50%;
+  flex-shrink: 0.5;
+}
+
+#app .playback .center-controls {
+  flex-shrink: 0;
+  flex-grow: 0;
+  padding: 5px;
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  flex-direction: column;
+  background-color: var(--dark-bg-color);
+}
+
+#app .playback .master {
+  width: 80px;
+  flex-shrink: 0;
+  flex-grow: 0;
+  background-color: var(--dark-bg-color);
+}
+
+#app .playback .title {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  height: 30px;
+  font-size: 16px;
+  background-color: var(--dark-bg-color);
 }
 
 .tiny-button {
@@ -35,6 +86,7 @@ body {
 
 /* discord footer */
 #app .discord-status {
+  border-top: 1px solid var(--main-font-color);
   background-color: var(--dark-bg-color);
   position: fixed;
   bottom: 0;

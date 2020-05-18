@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 let client = new Discord.Client();
 let voiceConnection = null;
+let dispatcher = null;
 
 function login(key, onComplete) {
   console.log(`Attempting login with [${key.substr(0, 10)}...]`);
@@ -38,7 +39,6 @@ function getChannels() {
     };
   });
 
-  console.log(channelsByGuild);
   return channelsByGuild;
 }
 
@@ -64,6 +64,13 @@ async function leaveChannel() {
   return true;
 }
 
+async function connectDiscordAudioStream(stream, onError, onStart, onFinish) {
+  dispatcher = voiceConnection.play(stream, { type: 'converted' });
+  dispatcher.on('error', onError);
+  dispatcher.on('start', onStart);
+  dispatcher.on('finish', onFinish);
+}
+
 module.exports = {
   login,
   logout,
@@ -71,4 +78,5 @@ module.exports = {
   getChannels,
   joinChannel,
   leaveChannel,
+  connectDiscordAudioStream,
 };

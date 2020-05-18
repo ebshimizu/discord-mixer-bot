@@ -34,6 +34,7 @@
     "libsodium-wrappers": "^0.7.6",
     "speaker": "^0.5.1",
     "stream-storage": "^0.0.5",
+    "uuid": "^8.0.0",
     "vue": "^2.6.11",
     "vuex": "^3.4.0",
     "vuex-electron": "ebshimizu/vuex-electron"

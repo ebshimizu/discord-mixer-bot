@@ -2,9 +2,14 @@ const { createSharedMutations } = require('vuex-electron');
 const { ACTION, MUTATION } = require('./actions');
 const ElectronStore = require('electron-store');
 const eStore = new ElectronStore();
+const { StreamStorage } = require('stream-storage');
 
 // references to external apis n stuff
 let discordManager, audioEngine;
+const duplexStream = new StreamStorage({
+  chunkSize: 8 * 1024,
+  maxSize: 64 * 1024,
+});
 
 module.exports = {
   plugins: [
@@ -51,7 +56,7 @@ module.exports = {
       discordManager = init.discord;
       audioEngine = init.audio;
     },
-    [ACTION.DISCORD_LOGIN](context, key) {
+    [ACTION.DISCORD_LOGIN](context) {
       // will probably want to attach handlers here too
       // and error handlers
       discordManager.login(context.state.discord.token, (client) => {
@@ -83,11 +88,14 @@ module.exports = {
       const connected = await discordManager.joinChannel(channelInfo.id);
       if (connected) {
         context.commit(MUTATION.DISCORD_CONNECTED_TO, channelInfo.id);
+        // TODO: ACTUAL HANDLERS
+        discordManager.connectDiscordAudioStream(duplexStream, console.log, console.log, console.log);
+        audioEngine.setOutputStream(duplexStream);
       }
     },
     async [ACTION.DISCORD_LEAVE_VOICE](context) {
       await discordManager.leaveChannel();
       context.commit(MUTATION.DISCORD_CONNECTED_TO, null);
-    }
+    },
   },
 };

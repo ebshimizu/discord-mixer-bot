@@ -81,7 +81,7 @@ module.exports = {
         this.$prompt('Enter your Discord bot token.', 'Set Bot Token', {
           confirmButtonText: 'Set',
           cancelButtonText: 'Cancel',
-          inputPlaceholder: this.$store.state.discord.token,
+          inputPlaceholder: `${this.$store.state.discord.token.substr(0, 10)}...`,
         })
           .then((value) => {
             this.$store.dispatch(ACTION.DISCORD_SET_TOKEN, value.value);

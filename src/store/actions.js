@@ -10,6 +10,7 @@ const ACTION = {
   AUDIO_SRC_SET_VOLUME: 'Set audio source volume',
   AUDIO_SRC_SET_LOOP: 'Set audio source loop',
   AUDIO_SRC_REMOVE: 'Remove audio source',
+  AUDIO_SET_MASTER_VOLUME: 'Set master volume',
 };
 
 const MUTATION = {
@@ -24,6 +25,7 @@ const MUTATION = {
   AUDIO_SRC_STATUS_CHANGE: 'Audio Source Status Change',
   AUDIO_SRC_SET_VOLUME: 'Set audio source volume',
   AUDIO_SRC_SET_LOOP: 'Set audio source loop',
+  AUDIO_SET_MASTER_VOLUME: 'Set master volume',
 };
 
 module.exports = {

@@ -1,14 +1,15 @@
 :root {
-  --main-font-color: #EBEEF5;
+  --main-font-color: #ebeef5;
   --main-bg-color: #303133;
   --dark-bg-color: #1c1d1f;
   --status-bg-green: #176400;
   --status-bg-red: #ad0000;
   --status-bg-yellow: #af7200;
+  --header-bg-color: rgb(28, 18, 49);
 }
 
 body {
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   color: var(--main-font-color);
   background-color: var(--main-bg-color);
   margin: 0;
@@ -16,6 +17,38 @@ body {
 
 #app {
   height: 100vh;
+}
+
+/* header */
+#app .el-header {
+  padding: 0;
+  display: flex;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+#app .el-header .el-menu.el-menu--horizontal {
+  border-bottom: none;
+}
+
+#app .el-header .app-title {
+  width: 150px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  align-content: middle;
+  flex-direction: column;
+  background-color: rgb(84, 92, 100);
+  padding: 10px;
+}
+
+#app .app-title .version {
+  font-weight: bold;
+  font-size: 12px;
+}
+
+#app .el-header .main-menu {
+  width: 100%;
 }
 
 /* playback window and components */
@@ -35,16 +68,14 @@ body {
 }
 
 #app .playback .pb-staging,
-#app .playback .pb-live
-{
+#app .playback .pb-live {
   width: 50%;
   flex-shrink: 0.5;
   height: 100%;
 }
 
 #app #staging,
-#app #live
-{
+#app #live {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -82,6 +113,22 @@ body {
   flex-shrink: 0;
   flex-grow: 0;
   background-color: var(--dark-bg-color);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid white;
+}
+
+.playback .master .fader {
+  height: 100%;
+  padding: 20px 0;
+  display: flex;
+  align-content: center;
+  justify-content: center;
+}
+
+.playback .master .el-slider {
+  height: 100%;
 }
 
 #app .playback .title {
@@ -93,6 +140,9 @@ body {
   font-size: 16px;
   background-color: var(--dark-bg-color);
   border-bottom: 1px solid white;
+  font-family: 'Consolas', monospace;
+  font-weight: bold;
+  flex-shrink: 0;
 }
 
 .audio-source {
@@ -108,7 +158,7 @@ body {
   display: flex;
   height: 30px;
   width: 100%;
-  font-family: "Consolas", monospace;
+  font-family: 'Consolas', monospace;
   font-size: 14px;
   background-color: var(--dark-bg-color);
 }
@@ -136,8 +186,7 @@ body {
 }
 
 .audio-source.Transcoding .controls .status,
-.audio-source.Buffering .controls .status
-{
+.audio-source.Buffering .controls .status {
   background-color: var(--status-bg-yellow);
 }
 
@@ -165,8 +214,7 @@ body {
 }
 
 .blue.tiny-button:hover,
-.active.blue.tiny-button:hover
-{
+.active.blue.tiny-button:hover {
   background-color: rgb(0, 73, 207);
 }
 
@@ -183,7 +231,7 @@ body {
   left: 0;
   height: 30px;
   width: 100%;
-  font-family: "Consolas", monospace;
+  font-family: 'Consolas', monospace;
   font-size: 9pt;
 }
 
@@ -224,7 +272,7 @@ body {
 }
 
 #app .discord-status .el-cascader .el-input input {
-  font-family: "Consolas", monospace;
+  font-family: 'Consolas', monospace;
   font-size: 12px;
   padding: 0 5px;
   width: 98%;
@@ -241,5 +289,5 @@ body {
 }
 
 #app .discord-status .el-cascader .el-input input:hover {
- background-color: var(--main-bg-color);
+  background-color: var(--main-bg-color);
 }

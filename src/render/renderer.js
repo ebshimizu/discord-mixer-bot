@@ -3,6 +3,7 @@ const Vuex = require('Vuex');
 const fs = require('fs-extra');
 const ElementUI = require('element-ui');
 const locale = require('element-ui/lib/locale/lang/en');
+const { getVersion } = require('electron').remote.app;
 
 const { ACTION } = require('../store/actions');
 
@@ -27,6 +28,14 @@ const app = new Vue({
   el: '#app',
   store,
   data: {},
-  computed: {},
-  methods: {},
+  computed: {
+    version() {
+      return getVersion();
+    }
+  },
+  methods: {
+    handleMainMenu(key, keyPath) {
+      console.log(`Option selected: ${key}`);
+    }
+  },
 });

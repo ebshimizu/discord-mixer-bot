@@ -1,15 +1,36 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="../../node_modules/element-ui/lib/theme-chalk/index.css" />
+    <meta charset="UTF-8" />
+    <link
+      rel="stylesheet"
+      href="../../node_modules/element-ui/lib/theme-chalk/index.css"
+    />
     <link rel="stylesheet" href="style.css" />
     <title>Discord Mixer Bot</title>
   </head>
   <body>
     <div id="app">
       <el-container class="main">
-        <el-header></el-header>
+        <el-header>
+          <div class="app-title">
+            <span class="title">Discord Mixer Bot</span>
+            <span class="version">{{ version }}</span>
+          </div>
+          <el-menu
+            class="main-menu"
+            mode="horizontal"
+            @select="handleMainMenu"
+            background-color="#545c64"
+            text-color="#fff"
+            active-text-color="#fff"
+          >
+            <el-submenu index="file">
+              <template slot="title">File</template>
+              <el-menu-item index="export-cues">Export Cues</el-menu-item>
+            </el-submenu>
+          </el-menu>
+        </el-header>
         <el-main>
           <playback></playback>
         </el-main>

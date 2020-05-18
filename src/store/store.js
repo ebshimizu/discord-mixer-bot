@@ -98,6 +98,9 @@ module.exports = {
         found.loop = srcData.loop;
       }
     },
+    [MUTATION.AUDIO_SET_MASTER_VOLUME](state, vol) {
+      state.audio.masterVolume = vol;
+    }
   },
   actions: {
     [ACTION.INIT_STATE](context, init) {
@@ -191,6 +194,10 @@ module.exports = {
       audioEngine.removeSource(id);
       context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
       context.commit(MUTATION.AUDIO_UPDATE_LIVE, audioEngine.liveSources);
+    },
+    [ACTION.AUDIO_SET_MASTER_VOLUME](context, vol) {
+      audioEngine.masterVolume = vol;
+      context.commit(MUTATION.AUDIO_SET_MASTER_VOLUME, vol);
     },
   },
 };

@@ -351,7 +351,19 @@ class AudioEngine {
   // things can't be directly loaded into live ever due to the load delay
   // with the current web audio library
   stageResource(locator, type, opts = {}) {
-    const src = new AudioSource(this._context, locator, type, uuidv4());
+    let srcBuffer = null;
+
+    // cache lookup
+    if (opts.cacheId) {
+      if (
+        opts.cacheId in this._cache &&
+        this._cache[opts.cacheId]._status === ResourceStatus.READY
+      ) {
+        srcBuffer = this._cache[opts.cacheId]._audioBuffer;
+      }
+    }
+
+    const src = new AudioSource(this._context, locator, type, uuidv4(), srcBuffer);
     src._onProgress = this._onSrcProgress;
     src._onError = this._onSrcError;
     src._onStatusChange = this._onSrcStatusChange;
@@ -387,6 +399,11 @@ class AudioEngine {
   }
 
   cacheResource(locator, type, opts = {}) {
+    // if something already exists, return that id
+    for (const id in this._cache) {
+      if (this._cache[id]._locator === locator) return id;
+    }
+
     const src = new AudioSource(this._context, locator, type, uuidv4());
     src._onProgress = this._onSrcProgress;
     src._onError = this._onSrcError;
@@ -397,6 +414,12 @@ class AudioEngine {
 
     this._cache[src._id] = src;
     src.load();
+
+    return src._id;
+  }
+
+  deleteFromCache(id) {
+    if (id in this._cache) delete this._cache[id];
   }
 
   fadeStagedToLive(time, onComplete, swap = false) {
@@ -443,8 +466,7 @@ class AudioEngine {
     let tmp = this._staged.sources;
     if (swap) {
       this.copyFromLiveToStaging();
-    }
-    else {
+    } else {
       this._staged.sources = [];
     }
 

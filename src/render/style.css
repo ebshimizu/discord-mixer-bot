@@ -310,6 +310,14 @@ body {
   background-color: var(--main-bg-color);
 }
 
+.cue-item.preloaded,
+#app .el-tree-node.is-current .preloaded,
+#app .el-tree-node.is-current .preloaded:focus,
+#app .el-tree-node.is-current .el-tree-node__content .preloaded {
+  background-color: var(--status-bg-green);
+}
+
+
 /* discord footer */
 #app .discord-status {
   border-top: 1px solid var(--main-font-color);

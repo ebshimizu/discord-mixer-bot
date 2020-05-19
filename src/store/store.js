@@ -30,6 +30,7 @@ module.exports = {
     audio: {
       staged: [],
       live: [],
+      cache: {},
       locked: false,
       stagedVolume: 1,
       liveVolume: 1,
@@ -43,6 +44,8 @@ module.exports = {
       return state.audio.staged.concat(state.audio.live);
     },
     getSource: (state) => (id) => {
+      if (id in state.audio.cache) return state.audio.cache[id];
+
       return state.audio.staged
         .concat(state.audio.live)
         .find((source) => source.id === id);
@@ -78,6 +81,11 @@ module.exports = {
     },
     [MUTATION.LOAD_CUES](state) {
       const cues = eStore.get('cues');
+      // delete preload status
+      for (const id in cues) {
+        cues[id].preloaded = [];
+      }
+
       if (cues) state.cues = cues;
     },
     [MUTATION.AUDIO_UPDATE_STAGED](state, sources) {
@@ -129,6 +137,9 @@ module.exports = {
     [MUTATION.DELETE_CUE](state, id) {
       Vue.delete(state.cues, id);
       eStore.set('cues', state.cues);
+    },
+    [MUTATION.AUDIO_UPDATE_CACHE](state, cache) {
+      state.audio.cache = cache;
     },
   },
   actions: {
@@ -206,13 +217,20 @@ module.exports = {
     [ACTION.AUDIO_MOVE_TO_LIVE](context, opts) {
       // probably need a lock on the interface here to prevent weird adds/deletes
       // UI should disable buttons if not all sources are ready
-      opts.swap = ('swap' in opts) ? opts.swap : false;
+      opts.swap = 'swap' in opts ? opts.swap : false;
 
-      audioEngine.fadeStagedToLive(opts.time, () => {
-        // swap the sources
-        context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
-        context.commit(MUTATION.AUDIO_UPDATE_LIVE, audioEngine.liveSources);
-      }, opts.swap);
+      audioEngine.fadeStagedToLive(
+        opts.time,
+        () => {
+          // swap the sources
+          context.commit(
+            MUTATION.AUDIO_UPDATE_STAGED,
+            audioEngine.stagedSources
+          );
+          context.commit(MUTATION.AUDIO_UPDATE_LIVE, audioEngine.liveSources);
+        },
+        opts.swap
+      );
     },
     [ACTION.AUDIO_SRC_SET_VOLUME](context, srcData) {
       // relay
@@ -245,7 +263,7 @@ module.exports = {
       context.commit(MUTATION.ADD_CUE, {
         name: cueData.name ? cueData.name : 'New Cue',
         sources: cueData.sources ? cueData.sources : [],
-        preloaded: false,
+        preloaded: [],
         fadeTime: cueData.fadeTime ? cueData.fadeTime : 5,
         category: cueData.category !== '' ? cueData.category : 'Uncategorized',
       });
@@ -256,14 +274,19 @@ module.exports = {
     [ACTION.STAGE_CUE](context, cue) {
       // first, clear all the stuff from staged
       audioEngine.removeAllStaged();
-      for (const src of cue.sources) {
-        // TODO: check if the source is a cached source
+      const useCache = cue.preloaded.length > 0;
+
+      for (let i = 0; i < cue.sources.length; i++) {
+        const src = cue.sources[i];
+
         // otherwise load normally
         audioEngine.stageResource(src.locator, src.type, {
           volume: src.volume,
           loop: src.loop,
+          cacheId: useCache ? cue.preloaded[i] : null,
         });
       }
+
       // set the fade time from the cue
       if (cue.fadeTime) {
         context.commit(MUTATION.SET_CUSTOM_FADE_TIME, cue.fadeTime);
@@ -277,11 +300,56 @@ module.exports = {
     [ACTION.CLEAN_UP_STREAM](context) {
       discordManager.logout();
       audioEngine.stop();
-      duplexStream.destroy();
+
+      if (duplexStream) duplexStream.destroy();
     },
     [ACTION.AUDIO_COPY_FROM_LIVE](context) {
       audioEngine.copyFromLiveToStaging();
       context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
-    }
+    },
+    [ACTION.AUDIO_PRELOAD_CUE](context, data) {
+      // load sources into cache
+      data.cue.preloaded = [];
+
+      for (const src of data.cue.sources) {
+        data.cue.preloaded.push(
+          audioEngine.cacheResource(src.locator, src.type, {
+            loop: src.loop,
+            volume: src.volume,
+          })
+        );
+      }
+
+      // update the cache
+      context.commit(MUTATION.REPLACE_CUE, data);
+      context.commit(MUTATION.AUDIO_UPDATE_CACHE, audioEngine.cache);
+    },
+    [ACTION.AUDIO_UNLOAD_CUE](context, data) {
+      // in order to unload, we need to make sure no other cue has
+      // the source pre-loaded
+      for (const srcId of data.cue.preloaded) {
+        let canDelete = true;
+
+        for (const cueId in context.state.cues) {
+          // don't check against self
+          if (cueId === data.id) continue;
+
+          // check for same id
+          const cue = context.state.cues[cueId];
+          if (cue.preloaded.length > 0) {
+            if (cue.preloaded.indexOf(srcId) > -1) {
+              canDelete = false;
+              break;
+            }
+          }
+        }
+
+        if (canDelete) audioEngine.deleteFromCache(srcId);
+      }
+
+      data.cue.preloaded = [];
+      context.commit(MUTATION.REPLACE_CUE, data);
+      context.commit(MUTATION.AUDIO_UPDATE_CACHE, audioEngine.cache);
+    },
   },
 };

@@ -17,7 +17,9 @@ const ACTION = {
   REPLACE_CUE: 'Replace cue',
   DELETE_CUE: 'Delete cue',
   CLEAN_UP_STREAM: 'Clean up before exit',
-  AUDIO_COPY_FROM_LIVE: 'Copy Live to Staging'
+  AUDIO_COPY_FROM_LIVE: 'Copy Live to Staging',
+  AUDIO_PRELOAD_CUE: 'Preload Cue',
+  AUDIO_UNLOAD_CUE: 'Unload Cue'
 };
 
 const MUTATION = {
@@ -38,6 +40,7 @@ const MUTATION = {
   SET_CUSTOM_FADE_TIME: 'Set custom fade time',
   REPLACE_CUE: 'Replace Cue',
   DELETE_CUE: 'Delete Cue',
+  AUDIO_UPDATE_CACHE: 'Update Cache'
 };
 
 module.exports = {

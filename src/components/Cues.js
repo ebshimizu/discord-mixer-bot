@@ -1,4 +1,5 @@
 const { ACTION } = require('../store/actions');
+const { ResourceStatus } = require('../modules/audioEngine');
 
 const template = `
 <div id="cues">
@@ -60,6 +61,7 @@ module.exports = {
       cueTree() {
         // collect by category
         const cues = this.$store.state.cues;
+        const cache = this.$store.state.audio.cache;
         const categories = {};
         for (const id in cues) {
           const cue = cues[id];
@@ -67,7 +69,22 @@ module.exports = {
             categories[cue.category] = [];
           }
 
-          categories[cue.category].push({ cue, id });
+          // check preload status
+          let preloaded = false;
+          if (typeof cue.preloaded === 'object' && cue.preloaded.length > 0) {
+            // everything has to return ready
+            preloaded = cue.preloaded
+              .map((id) => {
+                return (
+                  id in cache &&
+                  this.$store.state.audio.cache[id].status ===
+                    ResourceStatus.READY
+                );
+              })
+              .reduce((a, b) => a & b, true);
+          }
+
+          categories[cue.category].push({ cue, id, preloaded });
         }
 
         // format into element array
@@ -75,8 +92,13 @@ module.exports = {
           return {
             label: name,
             id: name,
+            preloaded: false,
             children: categories[name].map((cue) => {
-              return { label: cue.cue.name, id: cue.id };
+              return {
+                label: cue.cue.name,
+                id: cue.id,
+                preloaded: cue.preloaded,
+              };
             }),
           };
         });
@@ -202,6 +224,14 @@ module.exports = {
           }
         );
       },
+      preload(id) {
+        const cue = this.$store.state.cues[id];
+        this.$store.dispatch(ACTION.AUDIO_PRELOAD_CUE, { cue, id });
+      },
+      unload(id) {
+        const cue = this.$store.state.cues[id];
+        this.$store.dispatch(ACTION.AUDIO_UNLOAD_CUE, { cue, id });
+      },
       renderCue(h, { node, data, store }) {
         // since i'm not using JSX, this will be somewhat painful
         const self = this;
@@ -236,8 +266,16 @@ module.exports = {
                   { nativeOn: { click: () => self.updateFromLive(data.id) } },
                   ['Update from Live']
                 ),
-                h('el-dropdown-item', {}, ['Preload']),
-                h('el-dropdown-item', {}, ['Unload']),
+                h(
+                  'el-dropdown-item',
+                  { nativeOn: { click: () => self.preload(data.id) } },
+                  ['Preload']
+                ),
+                h(
+                  'el-dropdown-item',
+                  { nativeOn: { click: () => self.unload(data.id) } },
+                  ['Unload']
+                ),
                 h(
                   'el-dropdown-item',
                   { nativeOn: { click: () => self.cueInfo(data.id) } },
@@ -275,6 +313,7 @@ module.exports = {
               'cue-item': true,
               header: data.children,
               leaf: !data.children,
+              preloaded: data.preloaded,
             },
           },
           data.children ? label : leafButtons

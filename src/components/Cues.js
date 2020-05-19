@@ -58,12 +58,14 @@ module.exports = {
             `<p>
               <strong>Category</strong>: ${cue.category}<br/>
               <strong>Fade Time</strong>: ${cue.fadeTime}s<br />
-              <strong>Sources</strong>: ${cue.sources.map(
-                (src) =>
-                  `Volume: ${(src.volume * 100).toFixed(1)} [${src.type}] ${
-                    src.locator
-                  }`
-              ).join(',')}
+              <strong>Sources</strong>: ${cue.sources
+                .map(
+                  (src) =>
+                    `Volume: ${(src.volume * 100).toFixed(1)} [${src.type}] ${
+                      src.locator
+                    }`
+                )
+                .join(',')}
             </p>`,
             'Cue Info',
             { confirmButtonText: 'OK', dangerouslyUseHTMLString: true }
@@ -76,18 +78,30 @@ module.exports = {
         // since i'm not using JSX, this will be somewhat painful
         const label = [h('div', {}, [node.label])];
         const leafButtons = [
-          h('el-dropdown', { props: { trigger: 'click' } }, [
-            h('div', { class: 'cue-dropdown' }, [node.label]),
-            h('el-dropdown-menu', { props: { slot: 'dropdown' } }, [
-              h('el-dropdown-item', {}, ['Edit']),
-              h(
-                'el-dropdown-item',
-                { nativeOn: { click: () => this.cueInfo(data.id) } },
-                ['Info']
-              ),
-              h('el-dropdown-item', {}, ['Delete']),
-            ]),
-          ]),
+          h(
+            'el-dropdown',
+            {
+              props: {
+                trigger: 'click',
+                size: 'mini',
+                placement: 'bottom-start',
+              },
+            },
+            [
+              h('div', { class: 'cue-dropdown' }, [node.label]),
+              h('el-dropdown-menu', { props: { slot: 'dropdown' } }, [
+                h('el-dropdown-item', {}, ['Edit']),
+                h('el-dropdown-item', {}, ['Preload']),
+                h(
+                  'el-dropdown-item',
+                  { nativeOn: { click: () => this.cueInfo(data.id) } },
+                  ['Info']
+                ),
+                h('el-dropdown-item', {}, ['Unload']),
+                h('el-dropdown-item', {}, ['Delete']),
+              ]),
+            ]
+          ),
           h(
             'el-button',
             {

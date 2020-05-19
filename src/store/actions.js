@@ -19,7 +19,9 @@ const ACTION = {
   CLEAN_UP_STREAM: 'Clean up before exit',
   AUDIO_COPY_FROM_LIVE: 'Copy Live to Staging',
   AUDIO_PRELOAD_CUE: 'Preload Cue',
-  AUDIO_UNLOAD_CUE: 'Unload Cue'
+  AUDIO_UNLOAD_CUE: 'Unload Cue',
+  AUDIO_IMPORT_CUES: 'Import Cues',
+  AUDIO_UNLOAD_CACHE: 'Unload Cache'
 };
 
 const MUTATION = {
@@ -40,6 +42,7 @@ const MUTATION = {
   SET_CUSTOM_FADE_TIME: 'Set custom fade time',
   REPLACE_CUE: 'Replace Cue',
   DELETE_CUE: 'Delete Cue',
+  DELETE_ALL_CUES: 'Delete all Cues',
   AUDIO_UPDATE_CACHE: 'Update Cache'
 };
 

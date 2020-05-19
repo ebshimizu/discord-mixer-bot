@@ -4,6 +4,7 @@ const fs = require('fs-extra');
 const ElementUI = require('element-ui');
 const locale = require('element-ui/lib/locale/lang/en');
 const { getVersion } = require('electron').remote.app;
+const dialog = require('electron').remote.dialog;
 
 const { ACTION } = require('../store/actions');
 
@@ -31,11 +32,44 @@ const app = new Vue({
   computed: {
     version() {
       return getVersion();
-    }
+    },
   },
   methods: {
     handleMainMenu(key, keyPath) {
       console.log(`Option selected: ${key}`);
-    }
+      if (key === 'export-cues') this.exportCues();
+      else if (key === 'import-cues') this.importCues(false);
+      else if (key === 'append-cues') this.importCues(true);
+    },
+    exportCues() {
+      dialog
+        .showSaveDialog({
+          title: 'Save Cues',
+          filters: [{ name: 'cues (json)', extensions: ['cues'] }],
+        })
+        .then((result) => {
+          if (!result.canceled) {
+            fs.writeFile(
+              result.filePath,
+              JSON.stringify(this.$store.state.cues, null, 2)
+            );
+          }
+        });
+    },
+    importCues(append) {
+      dialog
+        .showOpenDialog({
+          title: 'Import Cues',
+          filters: [{ name: 'cues (json)', extensions: ['cues'] }],
+        })
+        .then((result) => {
+          if (!result.canceled) {
+            this.$store.dispatch(ACTION.AUDIO_IMPORT_CUES, {
+              file: result.filePaths[0],
+              append,
+            });
+          }
+        });
+    },
   },
 });

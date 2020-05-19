@@ -6,6 +6,7 @@ const eStore = new ElectronStore();
 const { StreamStorage } = require('stream-storage');
 const { ResourceStatus, SourceType } = require('../modules/audioEngine');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs-extra');
 
 // references to external apis n stuff
 let discordManager, audioEngine;
@@ -136,6 +137,11 @@ module.exports = {
     },
     [MUTATION.DELETE_CUE](state, id) {
       Vue.delete(state.cues, id);
+      eStore.set('cues', state.cues);
+    },
+    [MUTATION.DELETE_ALL_CUES](state) {
+      state.cues = {};
+      // look out it's permanent
       eStore.set('cues', state.cues);
     },
     [MUTATION.AUDIO_UPDATE_CACHE](state, cache) {
@@ -351,5 +357,33 @@ module.exports = {
       context.commit(MUTATION.REPLACE_CUE, data);
       context.commit(MUTATION.AUDIO_UPDATE_CACHE, audioEngine.cache);
     },
+    [ACTION.AUDIO_IMPORT_CUES](context, { file, append }) {
+      // there's also no validation for this??? lol
+      try {
+        const cues = JSON.parse(fs.readFileSync(file));
+
+        // replace or append?
+        console.log(append);
+        if (!append) {
+          context.commit(MUTATION.DELETE_ALL_CUES);
+
+          // if replacing, unload the cache at will
+          context.dispatch(ACTION.AUDIO_UNLOAD_CACHE);
+        }
+
+        for (const id in cues) {
+          // probably shoooooould validate but eh
+          context.commit(MUTATION.ADD_CUE, cues[id]);
+        }
+      } catch(err) {
+        // error
+        console.log(err);
+      }
+    },
+    [ACTION.AUDIO_UNLOAD_CACHE](context) {
+      // lil dangerous, cues will still be preloaded
+      // intended for use with other actions that replace cues
+      audioEngine.deleteCache();
+    }
   },
 };

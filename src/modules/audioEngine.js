@@ -268,6 +268,11 @@ class AudioEngine {
     return ret;
   }
 
+  deleteCache() {
+    // byeeeeeeeee
+    this._cache = {};
+  }
+
   getSource(id) {
     // search through all sources to find a corresponding id
     return this._staged.sources

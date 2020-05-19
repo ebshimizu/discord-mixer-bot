@@ -204,6 +204,10 @@ class AudioEngine {
     this._context.resume();
   }
 
+  stop() {
+    this._context.close();
+  }
+
   // maps sources to an object that can be shoved into the vuex state
   // doesn't include any buffers for hopefully obvious reasons
   getSourceInfo(sources) {

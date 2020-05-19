@@ -15,7 +15,8 @@ const ACTION = {
   STAGE_CUE: 'Stage cue',
   SET_CUSTOM_FADE_TIME: 'Set Custom Fade Time',
   REPLACE_CUE: 'Replace cue',
-  DELETE_CUE: 'Delete cue'
+  DELETE_CUE: 'Delete cue',
+  CLEAN_UP_STREAM: 'Clean up before exit',
 };
 
 const MUTATION = {

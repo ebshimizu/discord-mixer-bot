@@ -272,5 +272,10 @@ module.exports = {
     [ACTION.DELETE_CUE](context, id) {
       context.commit(MUTATION.DELETE_CUE, id);
     },
+    [ACTION.CLEAN_UP_STREAM](context) {
+      discordManager.logout();
+      audioEngine.stop();
+      duplexStream.destroy();
+    }
   },
 };

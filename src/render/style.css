@@ -59,6 +59,7 @@ body {
 #app .el-main {
   margin-bottom: 30px;
   padding: 0;
+  display: flex;
 }
 
 #app .playback {
@@ -131,7 +132,9 @@ body {
   height: 100%;
 }
 
-#app .playback .title {
+#app .playback .title,
+#app #cues .title
+{
   display: flex;
   align-content: center;
   justify-content: center;
@@ -220,6 +223,63 @@ body {
 
 .active.blue.tiny-button {
   background-color: rgb(0, 41, 107);
+}
+
+#cues,
+#cues .cues
+{
+  height: 100%;
+}
+
+#cues {
+  width: 250px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid white;
+}
+
+#app .el-tree {
+  background-color: var(--main-bg-color);
+  color: var(--main-font-color);
+}
+
+#app .cue-item {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+#app .cue-item.header {
+  display: flex;
+  align-content: center;
+  justify-content: left;
+  align-items: center;
+}
+
+#app .cue-dropdown {
+  width: 100%;
+}
+
+#app .cue-item.leaf .el-dropdown {
+  width: 100%;
+  display: flex;
+  align-content: center;
+  justify-content: left;
+  align-items: center;
+  color: var(--main-font-color);
+  font-size: 14px;
+}
+
+#app .el-tree-node__content:hover,
+#app .el-tree-node.is-current .el-tree-node__content:hover {
+  background-color: rgb(84, 92, 100);
+}
+
+#app .el-tree-node.is-current,
+#app .el-tree-node.is-current:focus,
+#app .el-tree-node.is-current .el-tree-node__content {
+  background-color: var(--main-bg-color);
 }
 
 /* discord footer */

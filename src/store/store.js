@@ -1,9 +1,11 @@
+const Vue = require('vue/dist/vue.common');
 const { createSharedMutations } = require('vuex-electron');
 const { ACTION, MUTATION } = require('./actions');
 const ElectronStore = require('electron-store');
 const eStore = new ElectronStore();
 const { StreamStorage } = require('stream-storage');
 const { ResourceStatus, SourceType } = require('../modules/audioEngine');
+const { v4: uuidv4 } = require('uuid');
 
 // references to external apis n stuff
 let discordManager, audioEngine;
@@ -36,6 +38,7 @@ module.exports = {
       liveVolume: 1,
       masterVolume: 1,
     },
+    cues: {},
   },
   getters: {
     allSources: (state) => {
@@ -72,6 +75,10 @@ module.exports = {
       // at this point we need to sync the loaded state (which I at some point will)
       // actually save with the vuex store
     },
+    [MUTATION.LOAD_CUES](state) {
+      const cues = eStore.get('cues');
+      if (cues) state.cues = cues;
+    },
     [MUTATION.AUDIO_UPDATE_STAGED](state, sources) {
       state.audio.staged = sources;
     },
@@ -100,7 +107,17 @@ module.exports = {
     },
     [MUTATION.AUDIO_SET_MASTER_VOLUME](state, vol) {
       state.audio.masterVolume = vol;
-    }
+    },
+    [MUTATION.ADD_CUE](state, cueData) {
+      let id = uuidv4();
+      while (id in state.cues) {
+        // supposed to be unique, so ideally this never happens
+        id = uuidv4();
+      }
+
+      Vue.set(state.cues, id, cueData);
+      eStore.set('cues', state.cues);
+    },
   },
   actions: {
     [ACTION.INIT_STATE](context, init) {
@@ -115,6 +132,7 @@ module.exports = {
       // errors may have some handling in-app, but for now let the source component display
 
       context.commit(MUTATION.INIT_AUDIO);
+      context.commit(MUTATION.LOAD_CUES);
     },
     [ACTION.DISCORD_LOGIN](context) {
       // will probably want to attach handlers here too
@@ -198,6 +216,15 @@ module.exports = {
     [ACTION.AUDIO_SET_MASTER_VOLUME](context, vol) {
       audioEngine.masterVolume = vol;
       context.commit(MUTATION.AUDIO_SET_MASTER_VOLUME, vol);
+    },
+    [ACTION.ADD_CUE](context, cueData) {
+      context.commit(MUTATION.ADD_CUE, {
+        name: cueData.name ? cueData.name : 'New Cue',
+        sources: cueData.sources ? cueData.sources : [],
+        preloaded: false,
+        fadeTime: cueData.fadeTime ? cueData.fadeTime : 5,
+        category: cueData.category !== '' ? cueData.category : 'Uncategorized',
+      });
     },
   },
 };

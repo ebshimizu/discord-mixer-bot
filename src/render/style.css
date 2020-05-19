@@ -263,6 +263,14 @@ body {
   border-right: 1px solid white;
 }
 
+#cues .search {
+  width: 100%;
+}
+
+#cues .search .padder {
+  padding: 5px;
+}
+
 .el-dropdown-menu__item.danger {
   color: rgb(216, 27, 27);
 }

@@ -4,14 +4,24 @@ const { ResourceStatus } = require('../modules/audioEngine');
 const template = `
 <div id="cues">
   <div class="title">Cues</div>
+  <div class="search">
+    <div class="padder">
+      <el-input
+        placeholder="Search"
+        v-model="filterText">
+      </el-input>
+    </div>
+  </div>
   <div class="cues">
     <el-tree
       :data="cueTree"
+      :filter-node-method="filterNode"
       node-key="id"
       :default-expanded-keys="expandedKeys"
       :render-content="renderCue"
       v-on:node-expand="nodeExpand"
       v-on:node-collapse="nodeCollapse"
+      ref="tree"
       :props="defaultProps">
     </el-tree>
   </div>
@@ -36,6 +46,10 @@ const template = `
 </div>
 `;
 
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 module.exports = {
   id: 'cues',
   component: {
@@ -54,8 +68,15 @@ module.exports = {
           children: 'children',
           label: 'label',
         },
+        filterText: '',
         expandedKeys: [],
       };
+    },
+    watch: {
+      filterText(val) {
+        console.log(val);
+        this.$refs.tree.filter(val);
+      },
     },
     computed: {
       cueTree() {
@@ -105,6 +126,13 @@ module.exports = {
       },
     },
     methods: {
+      filterNode(value, data) {
+        if (!value) return true;
+        // regex match, any case
+        const rx = RegExp(escapeRegExp(value), 'gi');
+        // :thinking:
+        return !!data.label.match(rx);
+      },
       nodeExpand(node) {
         if (this.expandedKeys.indexOf(node.id) === -1)
           this.expandedKeys.push(node.id);

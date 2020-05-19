@@ -80,6 +80,11 @@ module.exports = {
     [MUTATION.INIT_AUDIO](state) {
       // at this point we need to sync the loaded state (which I at some point will)
       // actually save with the vuex store
+      const masterVol = eStore.get('masterVolume');
+      state.audio.masterVolume = masterVol ? masterVol : 1;
+
+      const fadeTime = eStore.get('fadeTime');
+      state.customFadeTime = fadeTime ? fadeTime : 5;
     },
     [MUTATION.LOAD_CUES](state) {
       const cues = eStore.get('cues');
@@ -321,6 +326,10 @@ module.exports = {
       audioEngine.stop();
 
       if (duplexStream) duplexStream.destroy();
+
+      // final app close persistence
+      eStore.set('masterVolume', context.state.audio.masterVolume);
+      eStore.set('fadeTime', context.state.customFadeTime);
     },
     [ACTION.AUDIO_COPY_FROM_LIVE](context) {
       audioEngine.copyFromLiveToStaging();

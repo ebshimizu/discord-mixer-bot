@@ -3,6 +3,7 @@ let client = new Discord.Client();
 let voiceConnection = null;
 let dispatcher = null;
 let broadcast = null;
+const permissions = 36701184;
 
 function login(key, onComplete) {
   console.log(`Attempting login with [${key.substr(0, 10)}...]`);
@@ -84,4 +85,5 @@ module.exports = {
   joinChannel,
   leaveChannel,
   connectDiscordAudioStream,
+  permissions
 };

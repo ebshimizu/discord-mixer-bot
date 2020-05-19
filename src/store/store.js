@@ -27,6 +27,7 @@ module.exports = {
       token: '',
       voiceChannels: {},
       connectedTo: null,
+      invite: null
     },
     audio: {
       staged: [],
@@ -70,6 +71,7 @@ module.exports = {
       state.discord.tag = info.tag;
       state.discord.id = info.id;
       state.discord.createdAt = info.createdAt;
+      state.discord.invite = info.invite;
     },
     [MUTATION.DISCORD_SET_CHANNELS](state, channels) {
       state.discord.voiceChannels = channels;
@@ -201,11 +203,14 @@ module.exports = {
         );
 
         context.commit(MUTATION.DISCORD_SET_READY, true);
-        context.commit(MUTATION.DISCORD_SET_BOT_INFO, {
-          tag: client.user.tag,
-          id: client.user.id,
-          createdAt: client.user.createdAt,
-        });
+        client.generateInvite(discordManager.permissions).then((invite) => {
+          context.commit(MUTATION.DISCORD_SET_BOT_INFO, {
+            tag: client.user.tag,
+            id: client.user.id,
+            createdAt: client.user.createdAt,
+            invite
+          });
+        })
         context.commit(
           MUTATION.DISCORD_SET_CHANNELS,
           discordManager.getChannels()
@@ -219,7 +224,9 @@ module.exports = {
         tag: '',
         id: null,
         createdAt: null,
+        invite: null
       });
+      context.commit(MUTATION.DISCORD_SET_CHANNELS, {});
     },
     [ACTION.DISCORD_SET_TOKEN](context, token) {
       context.commit(MUTATION.DISCORD_SET_TOKEN, token);

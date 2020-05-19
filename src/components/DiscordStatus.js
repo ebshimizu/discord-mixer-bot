@@ -1,4 +1,5 @@
 const { ACTION } = require('../store/actions');
+const { shell } = require('electron');
 
 const template = `
 <div class="discord-status">
@@ -8,6 +9,7 @@ const template = `
       <el-button-group>
         <el-button size="mini" ref="loginButton" type="primary" v-on:click="login">{{ action }}</el-button>
         <el-button size="mini" type="primary" v-on:click="setToken">Set Token</el-button>
+        <el-button size="mini" type="primary" v-on:click="getInvite">Get Invite</el-button>
       </el-button-group>
     </el-col>
     <el-col :span="12" class="last">
@@ -33,9 +35,9 @@ module.exports = {
   component: {
     template,
     data() {
-     return {
-       selectedOptions: []
-     }
+      return {
+        selectedOptions: [],
+      };
     },
     computed: {
       ready() {
@@ -62,12 +64,15 @@ module.exports = {
           data.push({
             value: guild,
             label: guilds[guild].name,
-            children
+            children,
           });
         }
 
         return data;
-      }
+      },
+      invite() {
+        return this.$store.state.discord.invite;
+      },
     },
     methods: {
       login() {
@@ -78,17 +83,41 @@ module.exports = {
         }
       },
       setToken() {
-        this.$prompt('Enter your Discord bot token.', 'Set Bot Token', {
-          confirmButtonText: 'Set',
-          cancelButtonText: 'Cancel',
-          inputPlaceholder: `${this.$store.state.discord.token.substr(0, 10)}...`,
-        })
+        this.$prompt(
+          "Enter your Discord bot token. If you don't have one, you'll have to make one.",
+          'Set Bot Token',
+          {
+            confirmButtonText: 'Set',
+            cancelButtonText: 'Cancel',
+            inputPlaceholder: `${this.$store.state.discord.token.substr(
+              0,
+              10
+            )}...`,
+          }
+        )
           .then((value) => {
             this.$store.dispatch(ACTION.DISCORD_SET_TOKEN, value.value);
           })
           .catch(() => {
             // noop
           });
+      },
+      getInvite() {
+        if (this.$store.state.discord.invite) {
+          // display popup and copy to user clipboard
+          shell.openExternal(this.invite);
+          this.$notify({
+            title: 'Opened Discord Bot Invite Link',
+            message: 'Disconnect and reconnect to refresh the server list.',
+            type: 'success',
+          });
+        } else {
+          this.$notify({
+            title: 'No Invite Link Available',
+            message: 'Bot is not logged in to Discord',
+            type: 'warning',
+          });
+        }
       },
       vcConnect() {
         // sanity check length of options
@@ -99,12 +128,13 @@ module.exports = {
 
         // get the channel id
         const guilds = this.$store.state.discord.voiceChannels;
-        const channelInfo = guilds[this.selectedOptions[0]].channels[this.selectedOptions[1]];
+        const channelInfo =
+          guilds[this.selectedOptions[0]].channels[this.selectedOptions[1]];
         this.$store.dispatch(ACTION.DISCORD_JOIN_VOICE, channelInfo);
       },
       vcDisconnect() {
         this.$store.dispatch(ACTION.DISCORD_LEAVE_VOICE);
-      }
+      },
     },
   },
 };

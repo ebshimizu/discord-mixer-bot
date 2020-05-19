@@ -13,7 +13,9 @@ const ACTION = {
   AUDIO_SET_MASTER_VOLUME: 'Set master volume',
   ADD_CUE: 'Add cue',
   STAGE_CUE: 'Stage cue',
-  SET_CUSTOM_FADE_TIME: 'Set Custom Fade Time'
+  SET_CUSTOM_FADE_TIME: 'Set Custom Fade Time',
+  REPLACE_CUE: 'Replace cue',
+  DELETE_CUE: 'Delete cue'
 };
 
 const MUTATION = {
@@ -31,7 +33,9 @@ const MUTATION = {
   AUDIO_SET_MASTER_VOLUME: 'Set master volume',
   LOAD_CUES: 'Load Cues',
   ADD_CUE: 'Add Cue',
-  SET_CUSTOM_FADE_TIME: 'Set custom fade time'
+  SET_CUSTOM_FADE_TIME: 'Set custom fade time',
+  REPLACE_CUE: 'Replace Cue',
+  DELETE_CUE: 'Delete Cue',
 };
 
 module.exports = {

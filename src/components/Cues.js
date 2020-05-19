@@ -6,10 +6,32 @@ const template = `
   <div class="cues">
     <el-tree
       :data="cueTree"
+      node-key="id"
+      :default-expanded-keys="expandedKeys"
       :render-content="renderCue"
+      v-on:node-expand="nodeExpand"
+      v-on:node-collapse="nodeCollapse"
       :props="defaultProps">
     </el-tree>
   </div>
+
+  <el-dialog title="Edit Cue" :visible.sync="editCueVisible">
+    <el-form :model="cueForm">
+      <el-form-item label="Category" :label-width="labelWidth">
+        <el-input v-model="cueForm.category"></el-input>
+      </el-form-item>
+      <el-form-item label="Name" :label-width="labelWidth">
+        <el-input v-model="cueForm.name"></el-input>
+      </el-form-item>
+      <el-form-item label="Fade Time" :label-width="labelWidth">
+        <el-input v-model="cueForm.fade"></el-input>
+      </el-form-item>
+    </el-form>
+    <span slot="footer" class="dialog-footer">
+      <el-button @click="editCueVisible = false">Cancel</el-button>
+      <el-button type="primary" @click="editCue">Save</el-button>
+    </span>
+  </el-dialog>
 </div>
 `;
 
@@ -19,10 +41,19 @@ module.exports = {
     template,
     data() {
       return {
+        cueForm: {
+          category: '',
+          name: '',
+          fade: '',
+        },
+        editCueVisible: false,
+        editCueId: '',
+        labelWidth: '100px',
         defaultProps: {
           children: 'children',
           label: 'label',
         },
+        expandedKeys: [],
       };
     },
     computed: {
@@ -43,6 +74,7 @@ module.exports = {
         return Object.keys(categories).map((name) => {
           return {
             label: name,
+            id: name,
             children: categories[name].map((cue) => {
               return { label: cue.cue.name, id: cue.id };
             }),
@@ -51,6 +83,14 @@ module.exports = {
       },
     },
     methods: {
+      nodeExpand(node) {
+        if (this.expandedKeys.indexOf(node.id) === -1)
+          this.expandedKeys.push(node.id);
+      },
+      nodeCollapse(node, data, tree) {
+        if (this.expandedKeys.indexOf(node.id) > -1)
+          this.expandedKeys.splice(this.expandedKeys.indexOf(node.id), 1);
+      },
       cueInfo(id) {
         console.log(id);
         if (id in this.$store.state.cues) {
@@ -74,11 +114,97 @@ module.exports = {
           );
         }
       },
+      showEditCue(id) {
+        const cue = this.$store.state.cues[id];
+        this.editCueId = id;
+
+        this.cueForm.name = cue.name;
+        this.cueForm.category = cue.category;
+        this.cueForm.fade = cue.fadeTime;
+
+        this.editCueVisible = true;
+      },
+      editCue() {
+        // ok received from dialog
+        // get the cue from the store the shove it back after updating the object
+        const cue = this.$store.state.cues[this.editCueId];
+        cue.name = this.cueForm.name;
+        cue.category = this.cueForm.category;
+        cue.fadeTime =
+          this.cueForm.fade === '' ? null : parseFloat(this.cueForm.fadeTime);
+
+        this.$store.dispatch(ACTION.REPLACE_CUE, { id: this.editCueId, cue });
+        this.editCueVisible = false;
+      },
       stageCue(id) {
         this.$store.dispatch(ACTION.STAGE_CUE, this.$store.state.cues[id]);
       },
+      deleteCue(id) {
+        const cue = this.$store.state.cues[id];
+        this.$alert(
+          `Are you sure you want to delete ${cue.name}?`,
+          'Confirm Delete',
+          {
+            confirmButtonText: 'Delete',
+            callback: (action) => {
+              if (action === 'confirm') {
+                this.$store.dispatch(ACTION.DELETE_CUE, id);
+              }
+            },
+          }
+        );
+      },
+      updateFromStaging(id) {
+        const cue = this.$store.state.cues[id];
+        this.$alert(
+          `Replace the sources in ${cue.name} with the ones currently in Staging.`,
+          'Confirm Update from Staging',
+          {
+            confirmButtonText: 'Update',
+            callback: (action) => {
+              if (action === 'confirm') {
+                cue.sources = this.$store.state.audio.staged.map((src) => {
+                  return {
+                    type: src.type,
+                    locator: src.locator,
+                    loop: src.loop,
+                    volume: src.volume,
+                    name: src.name,
+                  };
+                });
+                this.$store.dispatch(ACTION.REPLACE_CUE, { id, cue });
+              }
+            },
+          }
+        );
+      },
+      updateFromLive(id) {
+        const cue = this.$store.state.cues[id];
+        this.$alert(
+          `Replace the sources in ${cue.name} with the ones currently in Live.`,
+          'Confirm Update from Live',
+          {
+            confirmButtonText: 'Update',
+            callback: (action) => {
+              if (action === 'confirm') {
+                cue.sources = this.$store.state.audio.live.map((src) => {
+                  return {
+                    type: src.type,
+                    locator: src.locator,
+                    loop: src.loop,
+                    volume: src.volume,
+                    name: src.name,
+                  };
+                });
+                this.$store.dispatch(ACTION.REPLACE_CUE, { id, cue });
+              }
+            },
+          }
+        );
+      },
       renderCue(h, { node, data, store }) {
         // since i'm not using JSX, this will be somewhat painful
+        const self = this;
         const label = [h('div', {}, [node.label])];
         const leafButtons = [
           h(
@@ -93,15 +219,38 @@ module.exports = {
             [
               h('div', { class: 'cue-dropdown' }, [node.label]),
               h('el-dropdown-menu', { props: { slot: 'dropdown' } }, [
-                h('el-dropdown-item', {}, ['Edit']),
-                h('el-dropdown-item', {}, ['Preload']),
                 h(
                   'el-dropdown-item',
-                  { nativeOn: { click: () => this.cueInfo(data.id) } },
+                  { nativeOn: { click: () => self.showEditCue(data.id) } },
+                  ['Edit']
+                ),
+                h(
+                  'el-dropdown-item',
+                  {
+                    nativeOn: { click: () => self.updateFromStaging(data.id) },
+                  },
+                  ['Update from Staging']
+                ),
+                h(
+                  'el-dropdown-item',
+                  { nativeOn: { click: () => self.updateFromLive(data.id) } },
+                  ['Update from Live']
+                ),
+                h('el-dropdown-item', {}, ['Preload']),
+                h('el-dropdown-item', {}, ['Unload']),
+                h(
+                  'el-dropdown-item',
+                  { nativeOn: { click: () => self.cueInfo(data.id) } },
                   ['Info']
                 ),
-                h('el-dropdown-item', {}, ['Unload']),
-                h('el-dropdown-item', {}, ['Delete']),
+                h(
+                  'el-dropdown-item',
+                  {
+                    class: 'danger',
+                    nativeOn: { click: () => self.deleteCue(data.id) },
+                  },
+                  ['Delete']
+                ),
               ]),
             ]
           ),

@@ -331,13 +331,9 @@ class AudioEngine {
 
     // connect and play all of the sources
     for (const source of this._staged.sources) {
-      console.log(`${source._name} vol: ${source.volume}`);
       source.connect(this._staged.submaster);
       source.play();
-      console.log(`${source._name} vol: ${source.volume}`);
     }
-
-    console.log(this._context.currentTime);
 
     const now = this._context.currentTime;
     this._staged.submaster.gain.setValueAtTime(0.001, now);
@@ -351,7 +347,7 @@ class AudioEngine {
     setTimeout(() => self.swapStagedAndLive(onComplete), time * 1000);
   }
 
-  swapStagedAndLive(onComplete) {
+  swapStagedAndLive(onComplete, swap = false) {
     // at this point, live has faded out and staged is now live
     // disconnect all live sources
     for (const source of this._live.sources) {
@@ -360,11 +356,12 @@ class AudioEngine {
     }
 
     // swap sources
+    let tmp = this._live.sources;
     this._live.sources = this._staged.sources;
-    this._staged.sources = [];
+    this._staged.sources = swap ? tmp : [];
 
     // swap submasters
-    const tmp = this._live.submaster;
+    tmp = this._live.submaster;
     this._live.submaster = this._staged.submaster;
     this._staged.submaster = tmp;
 

@@ -55,7 +55,7 @@ module.exports = {
         addCueForm: {
           category: '',
           name: '',
-          fade: '5',
+          fade: '',
         },
         labelWidth: '100px',
       };
@@ -111,7 +111,9 @@ module.exports = {
           category: this.addCueForm.category,
           sources,
           fadeTime:
-            this.addCueForm.fade === '' ? 5 : parseFloat(this.addCueForm.fade),
+            this.addCueForm.fade === ''
+              ? null
+              : parseFloat(this.addCueForm.fade),
         });
       },
     },

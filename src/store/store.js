@@ -125,6 +125,14 @@ module.exports = {
       Vue.set(state.cues, id, cueData);
       eStore.set('cues', state.cues);
     },
+    [MUTATION.REPLACE_CUE](state, data) {
+      Vue.set(state.cues, data.id, data.cue);
+      eStore.set('cues', state.cues);
+    },
+    [MUTATION.DELETE_CUE](state, id) {
+      Vue.delete(state.cues, id);
+      eStore.set('cues', state.cues);
+    }
   },
   actions: {
     [ACTION.INIT_STATE](context, init) {
@@ -235,7 +243,9 @@ module.exports = {
         fadeTime: cueData.fadeTime ? cueData.fadeTime : 5,
         category: cueData.category !== '' ? cueData.category : 'Uncategorized',
       });
-      console.log(context.state.cues);
+    },
+    [ACTION.REPLACE_CUE](context, data) {
+      context.commit(MUTATION.REPLACE_CUE, data);
     },
     [ACTION.STAGE_CUE](context, cue) {
       // first, clear all the stuff from staged
@@ -249,9 +259,14 @@ module.exports = {
         });
       }
       // set the fade time from the cue
-      context.commit(MUTATION.SET_CUSTOM_FADE_TIME, cue.fadeTime);
+      if (cue.fadeTime) {
+        context.commit(MUTATION.SET_CUSTOM_FADE_TIME, cue.fadeTime);
+      }
       // update the store
       context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
     },
+    [ACTION.DELETE_CUE](context, id) {
+      context.commit(MUTATION.DELETE_CUE, id);
+    }
   },
 };

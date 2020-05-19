@@ -88,7 +88,9 @@ body {
   overflow: auto;
 }
 
-#app #staging .stage-buttons {
+#app #staging .stage-buttons,
+#app #live .live-buttons
+{
   padding: 5px;
   display: flex;
   align-items: center;
@@ -243,6 +245,10 @@ body {
   display: flex;
   flex-direction: column;
   border-right: 1px solid white;
+}
+
+.el-dropdown-menu__item.danger {
+  color: rgb(216, 27, 27);
 }
 
 #app .el-tree {

@@ -1,3 +1,5 @@
+const { ACTION } = require('../store/actions');
+
 const template = `
 <div id="cues">
   <div class="title">Cues</div>
@@ -67,14 +69,15 @@ module.exports = {
                 )
                 .join(',')}
             </p>`,
-            'Cue Info',
+            cue.name,
             { confirmButtonText: 'OK', dangerouslyUseHTMLString: true }
           );
         }
       },
+      stageCue(id) {
+        this.$store.dispatch(ACTION.STAGE_CUE, this.$store.state.cues[id]);
+      },
       renderCue(h, { node, data, store }) {
-        console.log(node, data, store);
-
         // since i'm not using JSX, this will be somewhat painful
         const label = [h('div', {}, [node.label])];
         const leafButtons = [
@@ -110,6 +113,7 @@ module.exports = {
                 icon: 'el-icon-d-arrow-right',
                 type: 'primary',
               },
+              nativeOn: { click: () => this.stageCue(data.id) },
             },
             []
           ),

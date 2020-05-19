@@ -109,6 +109,11 @@ body {
   border-left: 1px solid white;
 }
 
+#app .playback .center-controls button {
+  width: 100%;
+  margin: 5px 0;
+}
+
 #app .playback .master {
   width: 80px;
   flex-shrink: 0;
@@ -229,6 +234,7 @@ body {
 #cues .cues
 {
   height: 100%;
+  overflow: auto;
 }
 
 #cues {

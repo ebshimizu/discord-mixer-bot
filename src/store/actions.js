@@ -11,7 +11,9 @@ const ACTION = {
   AUDIO_SRC_SET_LOOP: 'Set audio source loop',
   AUDIO_SRC_REMOVE: 'Remove audio source',
   AUDIO_SET_MASTER_VOLUME: 'Set master volume',
-  ADD_CUE: 'Add cue'
+  ADD_CUE: 'Add cue',
+  STAGE_CUE: 'Stage cue',
+  SET_CUSTOM_FADE_TIME: 'Set Custom Fade Time'
 };
 
 const MUTATION = {
@@ -28,7 +30,8 @@ const MUTATION = {
   AUDIO_SRC_SET_LOOP: 'Set audio source loop',
   AUDIO_SET_MASTER_VOLUME: 'Set master volume',
   LOAD_CUES: 'Load Cues',
-  ADD_CUE: 'Add Cue'
+  ADD_CUE: 'Add Cue',
+  SET_CUSTOM_FADE_TIME: 'Set custom fade time'
 };
 
 module.exports = {

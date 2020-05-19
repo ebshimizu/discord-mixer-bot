@@ -9,6 +9,10 @@ const template = `
     <el-button type="primary" @click="fade(5)">
       Fade 5s <i class="el-icon-arrow-right"></i>
     </el-button>
+    <el-button type="primary" @click="customFade">
+      Fade {{ fadeTime }}s <i class="el-icon-arrow-right"></i>
+    </el-button>
+    <el-input-number v-model="fadeTime" :min="0" :step="0.1" size="mini"></el-input-number>
   </div>
   <div class="pb-live">
     <live></live>
@@ -40,11 +44,22 @@ module.exports = {
           this.$store.dispatch(ACTION.AUDIO_SET_MASTER_VOLUME, newVal / 100);
         },
       },
+      fadeTime: {
+        get: function () {
+          return this.$store.state.customFadeTime;
+        },
+        set: function (newVal) {
+          this.$store.dispatch(ACTION.SET_CUSTOM_FADE_TIME, newVal);
+        }
+      }
     },
     methods: {
       fade(time) {
         this.$store.dispatch(ACTION.AUDIO_MOVE_TO_LIVE, { time });
       },
+      customFade() {
+        this.fade(this.fadeTime);
+      }
     },
   },
 };

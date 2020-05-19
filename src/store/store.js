@@ -38,6 +38,7 @@ module.exports = {
       liveVolume: 1,
       masterVolume: 1,
     },
+    customFadeTime: 5,
     cues: {},
   },
   getters: {
@@ -48,6 +49,9 @@ module.exports = {
       return state.audio.staged
         .concat(state.audio.live)
         .find((source) => source.id === id);
+    },
+    cues: (state) => {
+      return state.cues;
     },
   },
   mutations: {
@@ -107,6 +111,9 @@ module.exports = {
     },
     [MUTATION.AUDIO_SET_MASTER_VOLUME](state, vol) {
       state.audio.masterVolume = vol;
+    },
+    [MUTATION.SET_CUSTOM_FADE_TIME](state, val) {
+      state.customFadeTime = val;
     },
     [MUTATION.ADD_CUE](state, cueData) {
       let id = uuidv4();
@@ -217,6 +224,9 @@ module.exports = {
       audioEngine.masterVolume = vol;
       context.commit(MUTATION.AUDIO_SET_MASTER_VOLUME, vol);
     },
+    [ACTION.SET_CUSTOM_FADE_TIME](context, val) {
+      context.commit(MUTATION.SET_CUSTOM_FADE_TIME, val);
+    },
     [ACTION.ADD_CUE](context, cueData) {
       context.commit(MUTATION.ADD_CUE, {
         name: cueData.name ? cueData.name : 'New Cue',
@@ -225,6 +235,23 @@ module.exports = {
         fadeTime: cueData.fadeTime ? cueData.fadeTime : 5,
         category: cueData.category !== '' ? cueData.category : 'Uncategorized',
       });
+      console.log(context.state.cues);
+    },
+    [ACTION.STAGE_CUE](context, cue) {
+      // first, clear all the stuff from staged
+      audioEngine.removeAllStaged();
+      for (const src of cue.sources) {
+        // TODO: check if the source is a cached source
+        // otherwise load normally
+        audioEngine.stageResource(src.locator, src.type, {
+          volume: src.volume,
+          loop: src.loop,
+        });
+      }
+      // set the fade time from the cue
+      context.commit(MUTATION.SET_CUSTOM_FADE_TIME, cue.fadeTime);
+      // update the store
+      context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
     },
   },
 };

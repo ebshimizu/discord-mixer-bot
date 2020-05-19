@@ -200,8 +200,7 @@ class AudioEngine {
     this._onSrcStatusChange = console.log;
 
     // offline test
-    // this._context.pipe(new Speaker({ sampleRate: 48000 }));
-
+    this._context.pipe(new Speaker({ sampleRate: 48000 }));
     this._context.resume();
   }
 
@@ -300,13 +299,20 @@ class AudioEngine {
     }
   }
 
+  removeAllStaged() {
+    this._staged.sources = [];
+  }
+
   // things can't be directly loaded into live ever due to the load delay
   // with the current web audio library
-  stageResource(locator, type) {
+  stageResource(locator, type, opts = {}) {
     const src = new AudioSource(this._context, locator, type, uuidv4());
     src._onProgress = this._onSrcProgress;
     src._onError = this._onSrcError;
     src._onStatusChange = this._onSrcStatusChange;
+    
+    if ('volume' in opts) src.volume = opts.volume;
+    if ('loop' in opts) src.loop(opts.loop);
 
     this._staged.sources.push(src);
     src.load();

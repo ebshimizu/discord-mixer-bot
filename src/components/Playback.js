@@ -6,13 +6,28 @@ const template = `
     <staging></staging>
   </div>
   <div class="center-controls">
+    <el-button type="primary" @click="fade(0.2)">
+      Move <i class="el-icon-arrow-right"></i>
+    </el-button>
     <el-button type="primary" @click="fade(5)">
       Fade 5s <i class="el-icon-arrow-right"></i>
     </el-button>
     <el-button type="primary" @click="customFade">
       Fade {{ fadeTime }}s <i class="el-icon-arrow-right"></i>
     </el-button>
-    <el-input-number v-model="fadeTime" :min="0" :step="0.1" size="mini"></el-input-number>
+    <div class="control-wrapper">
+      <el-input-number v-model="fadeTime" :min="0" :step="0.1" size="mini"></el-input-number>
+    </div>
+    <el-button type="primary" @click="copyFromLive">
+      <i class="el-icon-arrow-left"></i> Copy
+    </el-button>
+    <div class="control-wrapper">
+      <el-switch
+        v-model="swap"
+        active-text="Swap"
+        inactive-text="Move">
+      </el-switch>
+    </div>
   </div>
   <div class="pb-live">
     <live></live>
@@ -35,6 +50,11 @@ module.exports = {
   id: 'playback',
   component: {
     template,
+    data() {
+      return {
+        swap: false
+      }
+    },
     computed: {
       masterVolume: {
         get: function () {
@@ -55,10 +75,13 @@ module.exports = {
     },
     methods: {
       fade(time) {
-        this.$store.dispatch(ACTION.AUDIO_MOVE_TO_LIVE, { time });
+        this.$store.dispatch(ACTION.AUDIO_MOVE_TO_LIVE, { time, swap: this.swap });
       },
       customFade() {
         this.fade(this.fadeTime);
+      },
+      copyFromLive() {
+        this.$store.dispatch(ACTION.AUDIO_COPY_FROM_LIVE);
       }
     },
   },

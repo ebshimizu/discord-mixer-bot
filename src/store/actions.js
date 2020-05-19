@@ -17,6 +17,7 @@ const ACTION = {
   REPLACE_CUE: 'Replace cue',
   DELETE_CUE: 'Delete cue',
   CLEAN_UP_STREAM: 'Clean up before exit',
+  AUDIO_COPY_FROM_LIVE: 'Copy Live to Staging'
 };
 
 const MUTATION = {

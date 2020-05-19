@@ -139,6 +139,22 @@ body {
   height: 100%;
 }
 
+.playback .control-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+.playback .control-wrapper .el-switch__label {
+  color: var(--main-font-color);
+}
+
+.playback .control-wrapper .el-switch__label.is-active {
+  color: #409EFF;
+}
+
 #app .playback .title,
 #app #cues .title
 {

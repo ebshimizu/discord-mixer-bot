@@ -206,11 +206,13 @@ module.exports = {
     [ACTION.AUDIO_MOVE_TO_LIVE](context, opts) {
       // probably need a lock on the interface here to prevent weird adds/deletes
       // UI should disable buttons if not all sources are ready
+      opts.swap = ('swap' in opts) ? opts.swap : false;
+
       audioEngine.fadeStagedToLive(opts.time, () => {
         // swap the sources
         context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
         context.commit(MUTATION.AUDIO_UPDATE_LIVE, audioEngine.liveSources);
-      });
+      }, opts.swap);
     },
     [ACTION.AUDIO_SRC_SET_VOLUME](context, srcData) {
       // relay
@@ -276,6 +278,10 @@ module.exports = {
       discordManager.logout();
       audioEngine.stop();
       duplexStream.destroy();
+    },
+    [ACTION.AUDIO_COPY_FROM_LIVE](context) {
+      audioEngine.copyFromLiveToStaging();
+      context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
     }
   },
 };

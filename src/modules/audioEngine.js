@@ -32,7 +32,7 @@ const SourceType = {
 };
 
 class AudioSource {
-  constructor(context, locator, type, id) {
+  constructor(context, locator, type, id, buffer = null) {
     // eventually type will indicate url or file and handle appropriately
     this._id = id;
     this._status = ResourceStatus.INIT;
@@ -48,7 +48,7 @@ class AudioSource {
 
     // internals
     this._audioData = Buffer.alloc(0);
-    this._audioBuffer = null;
+    this._audioBuffer = buffer;
     this._outNode = context.createGain();
     this._outNode.gain.value = 1;
     this._context = context;
@@ -60,6 +60,9 @@ class AudioSource {
     );
 
     this.setReadableName();
+    if (buffer) {
+      this._status = ResourceStatus.READY;
+    }
     console.log(`tmp file location: ${this._tmpFileLocation}`);
   }
 
@@ -104,6 +107,12 @@ class AudioSource {
   }
 
   load() {
+    if (this._audioBuffer !== null) {
+      this.setStatus(ResourceStatus.READY);
+      console.log('Source already has a buffer, is ready');
+      return;
+    }
+
     // starts the loading process
     console.log(`Loading media from ${this._locator}...`);
 
@@ -194,10 +203,15 @@ class AudioEngine {
     this._locked = false; // will be true when a cue fade is happening
 
     // callbacks
-    // default is just logging until I fill it in
+    // default is just logging until user assignment after creation
     this._onSrcProgress = console.log;
     this._onSrcError = console.log;
     this._onSrcStatusChange = console.log;
+    this._onLock = null;
+    this._onUnlock = null;
+
+    // the preloaded sources cache
+    this._cache = {};
 
     // offline test
     // this._context.pipe(new Speaker({ sampleRate: 48000 }));
@@ -208,11 +222,20 @@ class AudioEngine {
     this._context.close();
   }
 
+  lock() {
+    this._locked = true;
+    if (this._onLock) this._onLock();
+  }
+
+  unlock() {
+    this._locked = false;
+    if (this._onUnlock) this._onUnlock();
+  }
+
   // maps sources to an object that can be shoved into the vuex state
   // doesn't include any buffers for hopefully obvious reasons
   getSourceInfo(sources) {
-    if (sources.length === 0)
-      return [];
+    if (sources.length === 0) return [];
 
     return sources.map((src) => {
       return {
@@ -225,6 +248,24 @@ class AudioEngine {
         name: src._name,
       };
     });
+  }
+
+  get cache() {
+    const ret = {};
+    for (const id in this._cache) {
+      const src = this._cache[id];
+      ret[id] = {
+        id: src._id,
+        type: src._type,
+        locator: src._locator,
+        status: src._status,
+        loop: src._loop,
+        volume: src.volume,
+        name: src._name,
+      };
+    }
+
+    return ret;
   }
 
   getSource(id) {
@@ -314,7 +355,7 @@ class AudioEngine {
     src._onProgress = this._onSrcProgress;
     src._onError = this._onSrcError;
     src._onStatusChange = this._onSrcStatusChange;
-    
+
     if ('volume' in opts) src.volume = opts.volume;
     if ('loop' in opts) src.loop(opts.loop);
 
@@ -322,7 +363,43 @@ class AudioEngine {
     src.load();
   }
 
-  fadeStagedToLive(time, onComplete) {
+  // copies the live sources back to staging
+  copyFromLiveToStaging() {
+    this._staged.sources = [];
+
+    for (const src of this._live.sources) {
+      // copy references to the audio buffer
+      const copySrc = new AudioSource(
+        this._context,
+        src._locator,
+        src._type,
+        uuidv4(),
+        src._audioBuffer
+      );
+      copySrc._onProgress = this._onSrcProgress;
+      copySrc._onError = this._onSrcError;
+      copySrc._onStatusChange = this._onSrcStatusChange;
+      copySrc.loop(src._loop);
+      copySrc.volume = src.volume;
+
+      this._staged.sources.push(copySrc);
+    }
+  }
+
+  cacheResource(locator, type, opts = {}) {
+    const src = new AudioSource(this._context, locator, type, uuidv4());
+    src._onProgress = this._onSrcProgress;
+    src._onError = this._onSrcError;
+    src._onStatusChange = this._onSrcStatusChange;
+
+    if ('volume' in opts) src.volume = opts.volume;
+    if ('loop' in opts) src.loop(opts.loop);
+
+    this._cache[src._id] = src;
+    src.load();
+  }
+
+  fadeStagedToLive(time, onComplete, swap = false) {
     // connect the sources, if not all are ready refuse to change
     for (const source of this._staged.sources) {
       if (source._status !== ResourceStatus.READY) {
@@ -332,6 +409,9 @@ class AudioEngine {
         return;
       }
     }
+
+    // should indicate lock here
+    this.lock();
 
     // connect and play all of the sources
     for (const source of this._staged.sources) {
@@ -348,7 +428,7 @@ class AudioEngine {
 
     // set a callback
     const self = this;
-    setTimeout(() => self.swapStagedAndLive(onComplete), time * 1000);
+    setTimeout(() => self.swapStagedAndLive(onComplete, swap), time * 1000);
   }
 
   swapStagedAndLive(onComplete, swap = false) {
@@ -360,9 +440,15 @@ class AudioEngine {
     }
 
     // swap sources
-    let tmp = this._live.sources;
-    this._live.sources = this._staged.sources;
-    this._staged.sources = swap ? tmp : [];
+    let tmp = this._staged.sources;
+    if (swap) {
+      this.copyFromLiveToStaging();
+    }
+    else {
+      this._staged.sources = [];
+    }
+
+    this._live.sources = tmp;
 
     // swap submasters
     tmp = this._live.submaster;
@@ -370,6 +456,7 @@ class AudioEngine {
     this._staged.submaster = tmp;
 
     if (onComplete) onComplete();
+    this.unlock();
   }
 
   setOutputStream(stream) {

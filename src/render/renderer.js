@@ -66,7 +66,7 @@ const app = new Vue({
           if (!result.canceled) {
             this.$store.dispatch(ACTION.AUDIO_IMPORT_CUES, {
               file: result.filePaths[0],
-              append,
+              append
             });
           }
         });

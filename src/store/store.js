@@ -357,13 +357,12 @@ module.exports = {
       context.commit(MUTATION.REPLACE_CUE, data);
       context.commit(MUTATION.AUDIO_UPDATE_CACHE, audioEngine.cache);
     },
-    [ACTION.AUDIO_IMPORT_CUES](context, { file, append }) {
+    [ACTION.AUDIO_IMPORT_CUES](context, { file, append, onError }) {
       // there's also no validation for this??? lol
       try {
         const cues = JSON.parse(fs.readFileSync(file));
 
         // replace or append?
-        console.log(append);
         if (!append) {
           context.commit(MUTATION.DELETE_ALL_CUES);
 

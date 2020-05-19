@@ -14,6 +14,7 @@ const template = `
   <div class="live-buttons">
     <el-button
       type="primary"
+      :disabled="locked"
       @click="showAddCue">
       New Cue
     </el-button>
@@ -55,6 +56,9 @@ module.exports = {
       };
     },
     computed: {
+      locked() {
+        return this.$store.state.locked;
+      },
       sources() {
         return this.$store.state.audio.live;
       },

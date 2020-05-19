@@ -79,6 +79,9 @@ module.exports = {
       },
     },
     computed: {
+      locked() {
+        return this.$store.state.locked;
+      },
       cueTree() {
         // collect by category
         const cues = this.$store.state.cues;
@@ -205,6 +208,8 @@ module.exports = {
         );
       },
       updateFromStaging(id) {
+        if (this.locked) return;
+
         const cue = this.$store.state.cues[id];
         this.$alert(
           `Replace the sources in ${cue.name} with the ones currently in Staging.`,
@@ -229,6 +234,8 @@ module.exports = {
         );
       },
       updateFromLive(id) {
+        if (this.locked) return;
+
         const cue = this.$store.state.cues[id];
         this.$alert(
           `Replace the sources in ${cue.name} with the ones currently in Live.`,
@@ -285,13 +292,17 @@ module.exports = {
                 h(
                   'el-dropdown-item',
                   {
+                    props: { disabled: this.locked },
                     nativeOn: { click: () => self.updateFromStaging(data.id) },
                   },
                   ['Update from Staging']
                 ),
                 h(
                   'el-dropdown-item',
-                  { nativeOn: { click: () => self.updateFromLive(data.id) } },
+                  {
+                    props: { disabled: this.locked },
+                    nativeOn: { click: () => self.updateFromLive(data.id) },
+                  },
                   ['Update from Live']
                 ),
                 h(
@@ -327,6 +338,7 @@ module.exports = {
                 size: 'mini',
                 icon: 'el-icon-d-arrow-right',
                 type: 'primary',
+                disabled: this.locked,
               },
               nativeOn: { click: () => this.stageCue(data.id) },
             },

@@ -37,6 +37,7 @@ module.exports = {
       liveVolume: 1,
       masterVolume: 1,
     },
+    locked: false,
     customFadeTime: 5,
     cues: {},
   },
@@ -147,6 +148,12 @@ module.exports = {
     [MUTATION.AUDIO_UPDATE_CACHE](state, cache) {
       state.audio.cache = cache;
     },
+    [MUTATION.LOCK](state) {
+      state.locked = true;
+    },
+    [MUTATION.UNLOCK](state) {
+      state.locked = false;
+    },
   },
   actions: {
     [ACTION.INIT_STATE](context, init) {
@@ -157,6 +164,12 @@ module.exports = {
       // on progress seems to not give any output for audio, so let it log until i see something
       audioEngine._onSrcStatusChange = (id, status) => {
         context.commit(MUTATION.AUDIO_SRC_STATUS_CHANGE, { id, status });
+      };
+      audioEngine._onLock = () => {
+        context.commit(MUTATION.LOCK);
+      };
+      audioEngine._onUnlock = () => {
+        context.commit(MUTATION.UNLOCK);
       };
       // errors may have some handling in-app, but for now let the source component display
 
@@ -374,7 +387,7 @@ module.exports = {
           // probably shoooooould validate but eh
           context.commit(MUTATION.ADD_CUE, cues[id]);
         }
-      } catch(err) {
+      } catch (err) {
         // error
         console.log(err);
       }
@@ -383,6 +396,6 @@ module.exports = {
       // lil dangerous, cues will still be preloaded
       // intended for use with other actions that replace cues
       audioEngine.deleteCache();
-    }
+    },
   },
 };

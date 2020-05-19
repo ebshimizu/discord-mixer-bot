@@ -43,7 +43,9 @@ const MUTATION = {
   REPLACE_CUE: 'Replace Cue',
   DELETE_CUE: 'Delete Cue',
   DELETE_ALL_CUES: 'Delete all Cues',
-  AUDIO_UPDATE_CACHE: 'Update Cache'
+  AUDIO_UPDATE_CACHE: 'Update Cache',
+  LOCK: 'Lock App',
+  UNLOCK: 'Unlock App'
 };
 
 module.exports = {

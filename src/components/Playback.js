@@ -6,19 +6,19 @@ const template = `
     <staging></staging>
   </div>
   <div class="center-controls">
-    <el-button type="primary" @click="fade(0.2)">
+    <el-button type="primary" @click="fade(0.2)" :disabled="locked">
       Move <i class="el-icon-arrow-right"></i>
     </el-button>
-    <el-button type="primary" @click="fade(5)">
+    <el-button type="primary" @click="fade(5)" :disabled="locked">
       Fade 5s <i class="el-icon-arrow-right"></i>
     </el-button>
-    <el-button type="primary" @click="customFade">
+    <el-button type="primary" @click="customFade" :disabled="locked">
       Fade {{ fadeTime }}s <i class="el-icon-arrow-right"></i>
     </el-button>
     <div class="control-wrapper">
       <el-input-number v-model="fadeTime" :min="0" :step="0.1" size="mini"></el-input-number>
     </div>
-    <el-button type="primary" @click="copyFromLive">
+    <el-button type="primary" @click="copyFromLive" :disabled="locked">
       <i class="el-icon-arrow-left"></i> Copy
     </el-button>
     <div class="control-wrapper">
@@ -56,6 +56,9 @@ module.exports = {
       }
     },
     computed: {
+      locked() {
+        return this.$store.state.locked;
+      },
       masterVolume: {
         get: function () {
           return this.$store.state.audio.masterVolume * 100;

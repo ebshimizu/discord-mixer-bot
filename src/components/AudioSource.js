@@ -15,42 +15,48 @@ const template = `
       :max="100"
       :step="0.1"
       :show-tooltip="true"
+      :disabled="locked"
       show-input>
     </el-slider>
   </div>
 </div>
-`
+`;
 module.exports = {
   id: 'audio-source',
   component: {
     template,
     props: ['source'],
     computed: {
+      locked() {
+        return this.$store.state.locked;
+      },
       volume: {
-        get: function() {
+        get: function () {
           return this.source.volume * 100;
         },
-        set: function(newVal) {
-          this.$store.dispatch(ACTION.AUDIO_SRC_SET_VOLUME, { 
+        set: function (newVal) {
+          this.$store.dispatch(ACTION.AUDIO_SRC_SET_VOLUME, {
             id: this.source.id,
-            volume: newVal / 100
+            volume: newVal / 100,
           });
-        }
+        },
       },
       statusClass() {
-        return this.source.status
-      }
+        return this.source.status;
+      },
     },
     methods: {
       toggleLoop() {
+        if (this.locked) return;
         this.$store.dispatch(ACTION.AUDIO_SRC_SET_LOOP, {
           id: this.source.id,
-          loop: !this.source.loop
+          loop: !this.source.loop,
         });
       },
       remove() {
+        if (this.locked) return;
         this.$store.dispatch(ACTION.AUDIO_SRC_REMOVE, this.source.id);
-      }
-    }
-  }
-}
+      },
+    },
+  },
+};

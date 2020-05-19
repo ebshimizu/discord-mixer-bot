@@ -1,5 +1,23 @@
 const { dialog } = require('electron').remote;
 const { ACTION } = require('../store/actions');
+const ytdl = require('ytdl-core');
+
+// borrowed right out of
+// https://github.com/amishshah/ytdl-core-discord/blob/master/index.js
+function filter(format) {
+  return (
+    format.codecs === 'opus' &&
+    format.container === 'webm' &&
+    format.audioSampleRate == 48000
+  );
+}
+
+function nextBestFormat(formats) {
+  formats = formats
+    .filter((format) => format.audioBitrate)
+    .sort((a, b) => b.audioBitrate - a.audioBitrate);
+  return formats.find((format) => !format.bitrate) || formats[0];
+}
 
 const template = `
 <div id="staging">
@@ -15,9 +33,16 @@ const template = `
     <el-button
       type="success"
       :disabled="locked"
-      icon="el-icon-plus"
+      icon="el-icon-document"
       @click="browseSource">
-      Add Source
+      File
+    </el-button>
+    <el-button
+      type="success"
+      :disabled="locked"
+      icon="el-icon-download"
+      @click="getLink">
+      YouTube
     </el-button>
     <el-button
       type="primary"
@@ -91,6 +116,32 @@ module.exports = {
           })
           .catch((err) => {
             console.log(err);
+          });
+      },
+      getLink() {
+        // borrowing a lot from ytdl-core-discord
+        this.$prompt('Enter a link to a YouTube Video.', 'YouTube Source', {
+          confirmButtonText: 'OK',
+          cancelButtonText: 'Cancel',
+        })
+          .then((value) => {
+            if (value.action === 'confirm') {
+              ytdl.getInfo(value.value, (err, info) => {
+                if (err) {
+                  // show an error
+                  console.log(err);
+                }
+
+                const url = nextBestFormat(info.formats).url;
+                this.$store.dispatch(ACTION.AUDIO_STAGE_YOUTUBE, {
+                  url,
+                  title: `[YouTube] ${info.title}`,
+                });
+              });
+            }
+          })
+          .catch(() => {
+            // error stuff
           });
       },
       showAddCue() {

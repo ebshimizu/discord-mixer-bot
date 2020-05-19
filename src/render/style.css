@@ -219,6 +219,9 @@ body {
 .audio-source .controls .name {
   width: 100%;
   justify-content: left;
+  overflow: hidden;
+  font-size: 12px;
+  align-items: flex-start;
 }
 
 .tiny-button {

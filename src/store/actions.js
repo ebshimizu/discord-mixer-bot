@@ -21,7 +21,8 @@ const ACTION = {
   AUDIO_PRELOAD_CUE: 'Preload Cue',
   AUDIO_UNLOAD_CUE: 'Unload Cue',
   AUDIO_IMPORT_CUES: 'Import Cues',
-  AUDIO_UNLOAD_CACHE: 'Unload Cache'
+  AUDIO_UNLOAD_CACHE: 'Unload Cache',
+  AUDIO_STAGE_YOUTUBE: 'Stage YouTube Video'
 };
 
 const MUTATION = {

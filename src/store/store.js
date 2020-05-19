@@ -27,7 +27,7 @@ module.exports = {
       token: '',
       voiceChannels: {},
       connectedTo: null,
-      invite: null
+      invite: null,
     },
     audio: {
       staged: [],
@@ -208,9 +208,9 @@ module.exports = {
             tag: client.user.tag,
             id: client.user.id,
             createdAt: client.user.createdAt,
-            invite
+            invite,
           });
-        })
+        });
         context.commit(
           MUTATION.DISCORD_SET_CHANNELS,
           discordManager.getChannels()
@@ -224,7 +224,7 @@ module.exports = {
         tag: '',
         id: null,
         createdAt: null,
-        invite: null
+        invite: null,
       });
       context.commit(MUTATION.DISCORD_SET_CHANNELS, {});
     },
@@ -315,6 +315,7 @@ module.exports = {
           volume: src.volume,
           loop: src.loop,
           cacheId: useCache ? cue.preloaded[i] : null,
+          name: src.name
         });
       }
 
@@ -412,6 +413,10 @@ module.exports = {
       // lil dangerous, cues will still be preloaded
       // intended for use with other actions that replace cues
       audioEngine.deleteCache();
+    },
+    [ACTION.AUDIO_STAGE_YOUTUBE](context, { url, title }) {
+      audioEngine.stageResource(url, SourceType.YOUTUBE, { name: title });
+      context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
     },
   },
 };

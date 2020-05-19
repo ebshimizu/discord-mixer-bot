@@ -30,6 +30,7 @@
     "uuid": "^8.0.0",
     "vue": "^2.6.11",
     "vuex": "^3.4.0",
-    "vuex-electron": "ebshimizu/vuex-electron"
+    "vuex-electron": "ebshimizu/vuex-electron",
+    "ytdl-core": "^2.1.3"
   }
 }

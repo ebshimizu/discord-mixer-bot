@@ -32,13 +32,16 @@ const SourceType = {
 };
 
 class AudioSource {
-  constructor(context, locator, type, id, buffer = null) {
+  constructor(context, locator, type, id, buffer = null, opts = {}) {
     // eventually type will indicate url or file and handle appropriately
     this._id = id;
     this._status = ResourceStatus.INIT;
     this._locator = locator;
     this._type = type;
     this._name = this._id;
+
+    // extras
+    this._opts = opts;
 
     // available callback hooks
     this._onProgress = null;
@@ -70,6 +73,8 @@ class AudioSource {
     if (this._type === SourceType.FILE) {
       // use the filename
       this._name = path.basename(this._locator);
+    } else if (this._type === SourceType.YOUTUBE) {
+      if (this._opts.name) this._name = this._opts.name;
     }
   }
 
@@ -122,7 +127,7 @@ class AudioSource {
 
     ffmpeg(this._locator)
       .toFormat('wav')
-      .outputOptions(['-ac 2', '-ar 48000'])
+      .outputOptions(['-ac 2', '-ar 48000', '-reconnect 1'])
       .save(this._tmpFileLocation)
       .on('error', function (err) {
         console.log(err);
@@ -368,7 +373,17 @@ class AudioEngine {
       }
     }
 
-    const src = new AudioSource(this._context, locator, type, uuidv4(), srcBuffer);
+    const srcOpts = {};
+    if ('name' in opts) srcOpts.name = opts.name;
+
+    const src = new AudioSource(
+      this._context,
+      locator,
+      type,
+      uuidv4(),
+      srcBuffer,
+      srcOpts
+    );
     src._onProgress = this._onSrcProgress;
     src._onError = this._onSrcError;
     src._onStatusChange = this._onSrcStatusChange;

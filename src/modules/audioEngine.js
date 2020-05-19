@@ -200,7 +200,7 @@ class AudioEngine {
     this._onSrcStatusChange = console.log;
 
     // offline test
-    this._context.pipe(new Speaker({ sampleRate: 48000 }));
+    // this._context.pipe(new Speaker({ sampleRate: 48000 }));
     this._context.resume();
   }
 

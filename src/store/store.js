@@ -9,10 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 
 // references to external apis n stuff
 let discordManager, audioEngine;
-const duplexStream = new StreamStorage({
-  chunkSize: 8 * 1024,
-  maxSize: 64 * 1024,
-});
+let duplexStream = null;
 
 module.exports = {
   plugins: [
@@ -132,7 +129,7 @@ module.exports = {
     [MUTATION.DELETE_CUE](state, id) {
       Vue.delete(state.cues, id);
       eStore.set('cues', state.cues);
-    }
+    },
   },
   actions: {
     [ACTION.INIT_STATE](context, init) {
@@ -153,6 +150,21 @@ module.exports = {
       // will probably want to attach handlers here too
       // and error handlers
       discordManager.login(context.state.discord.token, (client) => {
+        // create broadcast
+        if (duplexStream) duplexStream.destroy();
+
+        duplexStream = new StreamStorage({
+          chunkSize: 8 * 1024,
+          maxSize: 64 * 1024,
+        });
+        audioEngine.setOutputStream(duplexStream);
+        discordManager.connectDiscordAudioStream(
+          duplexStream,
+          console.log,
+          console.log,
+          console.log
+        );
+
         context.commit(MUTATION.DISCORD_SET_READY, true);
         context.commit(MUTATION.DISCORD_SET_BOT_INFO, {
           tag: client.user.tag,
@@ -181,14 +193,6 @@ module.exports = {
       const connected = await discordManager.joinChannel(channelInfo.id);
       if (connected) {
         context.commit(MUTATION.DISCORD_CONNECTED_TO, channelInfo.id);
-        // TODO: ACTUAL HANDLERS
-        discordManager.connectDiscordAudioStream(
-          duplexStream,
-          console.log,
-          console.log,
-          console.log
-        );
-        audioEngine.setOutputStream(duplexStream);
       }
     },
     async [ACTION.DISCORD_LEAVE_VOICE](context) {
@@ -267,6 +271,6 @@ module.exports = {
     },
     [ACTION.DELETE_CUE](context, id) {
       context.commit(MUTATION.DELETE_CUE, id);
-    }
+    },
   },
 };

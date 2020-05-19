@@ -2,10 +2,14 @@ const Discord = require('discord.js');
 let client = new Discord.Client();
 let voiceConnection = null;
 let dispatcher = null;
+let broadcast = null;
 
 function login(key, onComplete) {
   console.log(`Attempting login with [${key.substr(0, 10)}...]`);
   client.once('ready', function () {
+    // init the voice broadcast
+    broadcast = client.voice.createBroadcast();
+
     onComplete(client);
   });
   client.login(key);
@@ -47,6 +51,7 @@ async function joinChannel(channelId, onJoin, onError) {
     const channel = await client.channels.fetch(channelId);
     if (channel) {
       voiceConnection = await channel.join();
+      voiceConnection.play(broadcast);
       return true;
     } else {
       console.log(`Channel id ${channelId} not found`);
@@ -64,11 +69,11 @@ async function leaveChannel() {
   return true;
 }
 
-async function connectDiscordAudioStream(stream, onError, onStart, onFinish) {
-  dispatcher = voiceConnection.play(stream, { type: 'converted' });
-  dispatcher.on('error', onError);
-  dispatcher.on('start', onStart);
-  dispatcher.on('finish', onFinish);
+function connectDiscordAudioStream(stream, onError, onStart, onFinish) {
+  broadcast.play(stream, { type: 'converted' });
+  broadcast.on('error', onError);
+  broadcast.on('start', onStart);
+  broadcast.on('finish', onFinish);
 }
 
 module.exports = {

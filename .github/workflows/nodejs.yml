@@ -9,11 +9,11 @@ on:
 jobs:
   build:
 
-    runs-on: [windows-latest, macos-latest]
-
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [12.x]
+        os: [macos-latest, windows-latest]
+        node: [12.x]
 
     steps:
     - uses: actions/checkout@v2

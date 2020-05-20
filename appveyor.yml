@@ -2,7 +2,11 @@ image:
   - Visual Studio 2019
   - macos
 
+environment:
+  nodejs_version: "12"
+
 install:
+  - ps: Install-Product node $env:nodejs_version
   - yarn install
 
 build_script:

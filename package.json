@@ -1,6 +1,6 @@
 {
   "name": "discord-mixer-bot",
-  "version": "1.0.0-beta4",
+  "version": "1.0.0",
   "description": "A basic sound mixer/playback system that outputs through a Discord bot.",
   "main": "src/main/main.js",
   "scripts": {

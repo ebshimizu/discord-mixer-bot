@@ -12,11 +12,11 @@ This is a sound mixer that outputs music or sounds through a Discord bot. I buil
 
 The bot can import almost any audio source from file (as long as it can be processed by ffmpeg into a wav), and can import YouTube videos by URL. Imported sources are placed in the "Staging" area. Their volumes can be adjusted, and then faded over to the "Live" area with the center controls where they will begin to play. The bot does not have any play or pause controls (it was intended for background music, after all).
 
-Sets of frequently used sources can be saved as cues for later use. Cues themselves can be named and organized in any way you see fit, allowing for the creation of a library of commonly used effects and scenes.
+Sets of frequently used sources can be saved as cues for later use. Cues themselves can be named and organized in any way you see fit, allowing for the creation of a library of commonly used effects and scenes. The wiki has more info about [operating the application](https://github.com/ebshimizu/discord-mixer-bot/wiki/Making-Noise).
 
 ## System Requirements
 
-To use this bot, you need to have access to your own bot and bot token. [Discord.js guide](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) has a pretty good walkthrough of how to do that. You'll then need to put that token into the bot.
+To use this bot, you need to have access to your own bot and bot token. [Discord.js guide](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) has a pretty good walkthrough of how to do that. You'll then need to put that token into the bot. For more detailed setup instructions, [check out the wiki](https://github.com/ebshimizu/discord-mixer-bot/wiki/Setup).
 
 The libraries used to make this bot work use uncompressed audio in memory. This means that you need a lot of RAM to handle large files. System with 16GB of RAM should be ok if playing back song-length files, while systems with 32GB should be ok if playing back ~1 hour long sources. Above that, run at your own risk.
 

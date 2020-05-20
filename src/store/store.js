@@ -197,6 +197,8 @@ module.exports = {
 
       context.commit(MUTATION.INIT_AUDIO);
       context.commit(MUTATION.LOAD_CUES);
+
+      audioEngine._masterGain.gain.value = context.state.audio.masterVolume;
     },
     [ACTION.DISCORD_LOGIN](context) {
       // will probably want to attach handlers here too

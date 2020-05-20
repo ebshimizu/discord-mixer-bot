@@ -80,6 +80,18 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
+  position: relative;
+}
+
+#app #staging.dragging {
+  background-color: rgb(117, 115, 81);
+}
+
+#app #staging .title,
+#app #staging .stage-buttons
+#app #staging .sources,
+#app #staging .dropzone {
+  pointer-events: none;
 }
 
 #app .playback .sources {

@@ -20,7 +20,13 @@ function nextBestFormat(formats) {
 }
 
 const template = `
-<div id="staging">
+<div
+  id="staging"
+  :class="{ dragging }"
+  v-on:drop="handleDrop"
+  v-on:dragover.stop.prevent="dragging = true"
+  v-on:dragleave.stop.prevent="dragging = false"
+>
   <div class="title">Staging</div>
   <div class="sources">
     <audio-source
@@ -85,6 +91,7 @@ module.exports = {
           fade: '',
         },
         labelWidth: '100px',
+        dragging: false
       };
     },
     computed: {
@@ -96,6 +103,13 @@ module.exports = {
       },
     },
     methods: {
+      handleDrop(evt) {
+        this.dragging = false;
+
+        for (const file of evt.dataTransfer.files) {
+          this.$store.dispatch(ACTION.AUDIO_STAGE_FILE, file.path);
+        }
+      },
       browseSource: function () {
         dialog
           .showOpenDialog({

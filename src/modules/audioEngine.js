@@ -58,7 +58,7 @@ class AudioSource {
     this._loop = true;
     this._srcNode = null;
     this._tmpFileLocation = path.join(
-      app.getPath('appData'),
+      app.getPath('userData'),
       `${this._id}.tmp.wav`
     );
 

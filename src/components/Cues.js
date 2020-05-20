@@ -74,7 +74,6 @@ module.exports = {
     },
     watch: {
       filterText(val) {
-        console.log(val);
         this.$refs.tree.filter(val);
       },
     },

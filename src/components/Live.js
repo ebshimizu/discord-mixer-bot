@@ -72,7 +72,7 @@ module.exports = {
       addCue() {
         this.addCueVisible = false;
         // compile sources
-        const sources = this.$store.state.audio.staged.map((src) => {
+        const sources = this.sources.map((src) => {
           return {
             type: src.type,
             locator: src.locator,

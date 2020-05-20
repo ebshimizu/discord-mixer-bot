@@ -33,6 +33,18 @@ const app = new Vue({
     version() {
       return getVersion();
     },
+    messages() {
+      return this.$store.state.messageQueue;
+    },
+  },
+  watch: {
+    messages(queue) {
+      for (const msg of queue) {
+        this.$notify(msg);
+        console.log(msg);
+      }
+      this.$store.dispatch(ACTION.DRAIN_MESSAGE_QUEUE);
+    },
   },
   methods: {
     handleMainMenu(key, keyPath) {
@@ -66,7 +78,7 @@ const app = new Vue({
           if (!result.canceled) {
             this.$store.dispatch(ACTION.AUDIO_IMPORT_CUES, {
               file: result.filePaths[0],
-              append
+              append,
             });
           }
         });

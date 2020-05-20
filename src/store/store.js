@@ -41,6 +41,7 @@ module.exports = {
     locked: false,
     customFadeTime: 5,
     cues: {},
+    messageQueue: [],
   },
   getters: {
     allSources: (state) => {
@@ -161,10 +162,24 @@ module.exports = {
     [MUTATION.UNLOCK](state) {
       state.locked = false;
     },
+    [MUTATION.ADD_MESSAGE](state, message) {
+      state.messageQueue.push(message);
+    },
+    [MUTATION.DRAIN_MESSAGE_QUEUE](state, message) {
+      state.messageQueue = [];
+    },
   },
   actions: {
     [ACTION.INIT_STATE](context, init) {
       discordManager = init.discord;
+      discordManager.addHandler('error', (err) => {
+        context.commit(MUTATION.ADD_MESSAGE, {
+          title: 'Discord Client Error',
+          message: `${err}`,
+          type: 'error',
+        });
+      });
+
       audioEngine = init.audio;
 
       // add audio engine handlers
@@ -197,9 +212,27 @@ module.exports = {
         audioEngine.setOutputStream(duplexStream);
         discordManager.connectDiscordAudioStream(
           duplexStream,
-          console.log,
-          console.log,
-          console.log
+          (err) => {
+            context.commit(MUTATION.ADD_MESSAGE, {
+              title: 'Audio Stream Error',
+              message: `${err}`,
+              type: 'error',
+            });
+          },
+          () => {
+            context.commit(MUTATION.ADD_MESSAGE, {
+              title: 'Audio Stream Started',
+              message: 'Connected audio engine to Discord',
+              type: 'info',
+            });
+          },
+          () => {
+            context.commit(MUTATION.ADD_MESSAGE, {
+              title: 'Audio Stream Ended',
+              message: 'Audio engine disconnected from Discord',
+              type: 'info',
+            });
+          }
         );
 
         context.commit(MUTATION.DISCORD_SET_READY, true);
@@ -232,7 +265,23 @@ module.exports = {
       context.commit(MUTATION.DISCORD_SET_TOKEN, token);
     },
     async [ACTION.DISCORD_JOIN_VOICE](context, channelInfo) {
-      const connected = await discordManager.joinChannel(channelInfo.id);
+      const connected = await discordManager.joinChannel(
+        channelInfo.id,
+        () => {
+          context.commit(MUTATION.ADD_MESSAGE, {
+            title: 'Connected to Channel',
+            type: 'success',
+            message: `Joined ${channelInfo.name}`,
+          });
+        },
+        (err) => {
+          context.commit(MUTATION.ADD_MESSAGE, {
+            title: 'Connection Error',
+            type: 'error',
+            message: `${err}`,
+          });
+        }
+      );
       if (connected) {
         context.commit(MUTATION.DISCORD_CONNECTED_TO, channelInfo.id);
       }
@@ -240,6 +289,11 @@ module.exports = {
     async [ACTION.DISCORD_LEAVE_VOICE](context) {
       await discordManager.leaveChannel();
       context.commit(MUTATION.DISCORD_CONNECTED_TO, null);
+      context.commit(MUTATION.ADD_MESSAGE, {
+        title: 'Left Channel',
+        type: 'success',
+        message: '',
+      });
     },
     [ACTION.AUDIO_STAGE_FILE](context, file) {
       audioEngine.stageResource(file, SourceType.FILE);
@@ -315,7 +369,7 @@ module.exports = {
           volume: src.volume,
           loop: src.loop,
           cacheId: useCache ? cue.preloaded[i] : null,
-          name: src.name
+          name: src.name,
         });
       }
 
@@ -417,6 +471,9 @@ module.exports = {
     [ACTION.AUDIO_STAGE_YOUTUBE](context, { url, title }) {
       audioEngine.stageResource(url, SourceType.YOUTUBE, { name: title });
       context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
+    },
+    [ACTION.DRAIN_MESSAGE_QUEUE](context) {
+      context.commit(MUTATION.DRAIN_MESSAGE_QUEUE);
     },
   },
 };

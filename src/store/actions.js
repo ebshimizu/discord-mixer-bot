@@ -22,7 +22,8 @@ const ACTION = {
   AUDIO_UNLOAD_CUE: 'Unload Cue',
   AUDIO_IMPORT_CUES: 'Import Cues',
   AUDIO_UNLOAD_CACHE: 'Unload Cache',
-  AUDIO_STAGE_YOUTUBE: 'Stage YouTube Video'
+  AUDIO_STAGE_YOUTUBE: 'Stage YouTube Video',
+  DRAIN_MESSAGE_QUEUE: 'Drain Message Queue'
 };
 
 const MUTATION = {
@@ -46,7 +47,9 @@ const MUTATION = {
   DELETE_ALL_CUES: 'Delete all Cues',
   AUDIO_UPDATE_CACHE: 'Update Cache',
   LOCK: 'Lock App',
-  UNLOCK: 'Unlock App'
+  UNLOCK: 'Unlock App',
+  ADD_MESSAGE: 'Add Message',
+  DRAIN_MESSAGE_QUEUE: 'Drain Message Queue'
 };
 
 module.exports = {

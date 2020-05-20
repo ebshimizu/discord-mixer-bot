@@ -135,6 +135,7 @@ class AudioSource {
 
         if (self._onError) self._onError(self._id, err);
       })
+      .on('progress', console.log)
       .on('end', function () {
         self.setStatus(ResourceStatus.BUFFER);
         fs.readFile(self._tmpFileLocation, (err, data) => {
@@ -406,7 +407,8 @@ class AudioEngine {
         src._locator,
         src._type,
         uuidv4(),
-        src._audioBuffer
+        src._audioBuffer,
+        { name: src._name }
       );
       copySrc._onProgress = this._onSrcProgress;
       copySrc._onError = this._onSrcError;

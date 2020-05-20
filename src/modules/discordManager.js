@@ -53,6 +53,7 @@ async function joinChannel(channelId, onJoin, onError) {
     if (channel) {
       voiceConnection = await channel.join();
       voiceConnection.play(broadcast);
+      if (onJoin) onJoin();
       return true;
     } else {
       console.log(`Channel id ${channelId} not found`);
@@ -60,6 +61,7 @@ async function joinChannel(channelId, onJoin, onError) {
     }
   } catch (e) {
     console.log(`Error connecting to voice channel: ${e}`);
+    if (onError) onError(e);
     return false;
   }
 }

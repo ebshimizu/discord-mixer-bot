@@ -23,6 +23,7 @@ function createWindow() {
     minHeight: 380,
     webPreferences: {
       nodeIntegration: true,
+      enableRemoteModule: true,
     },
   });
 
@@ -39,7 +40,7 @@ autoUpdater.on('update-downloaded', function (info) {
   store.commit(MUTATION.ADD_MESSAGE, {
     title: 'Update Available',
     message: 'An app update will be installed when you exit.',
-    type: 'info'
+    type: 'info',
   });
 });
 

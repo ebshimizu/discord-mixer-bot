@@ -3,6 +3,7 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const ElectronStore = require('electron-store');
 const eStore = new ElectronStore();
+const { autoUpdater } = require('electron-updater');
 
 const Vue = require('Vue');
 const Vuex = require('Vuex');
@@ -29,20 +30,30 @@ function createWindow() {
   mainWindow.loadFile(path.join(__dirname, '..', 'render', 'index.html'));
 
   // Open the DevTools.
-  if (process.env.NODE_ENV !== 'production')
-    mainWindow.webContents.openDevTools();
+  // if (process.env.NODE_ENV === 'debug')
+  //   mainWindow.webContents.openDevTools();
 }
+
+autoUpdater.on('update-downloaded', function (info) {
+  console.log(info);
+  store.commit(MUTATION.ADD_MESSAGE, {
+    title: 'Update Available',
+    message: 'An app update will be installed when you exit.',
+    type: 'info'
+  });
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // vue devtool install
-  if (process.env.NODE_ENV !== 'production') {
-    require('vue-devtools').install();
-  }
+  // if (process.env.NODE_ENV !== 'production') {
+  //  require('vue-devtools').install();
+  // }
 
   createWindow();
+  autoUpdater.checkForUpdatesAndNotify();
 
   // app.on('activate', function () {
   //   // On macOS it's common to re-create a window in the app when the

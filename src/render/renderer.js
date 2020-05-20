@@ -5,6 +5,7 @@ const ElementUI = require('element-ui');
 const locale = require('element-ui/lib/locale/lang/en');
 const { getVersion } = require('electron').remote.app;
 const dialog = require('electron').remote.dialog;
+const path = require('path');
 
 const { ACTION } = require('../store/actions');
 
@@ -15,13 +16,13 @@ const store = new Vuex.Store(require('../store/store'));
 
 // load modules
 const moduleFiles = fs
-  .readdirSync('./src/components')
+  .readdirSync(path.join(__dirname, '..', 'components'))
   .filter((file) => file.endsWith('.js'));
 
 for (const file of moduleFiles) {
   // todo: file paths for compiled version will be weird,
   // unless we just... don't do ASAR because idgaf
-  const module = require(`../components/${file}`);
+  const module = require(path.join(__dirname, '..', 'components', file));
   Vue.component(module.id, module.component);
 }
 

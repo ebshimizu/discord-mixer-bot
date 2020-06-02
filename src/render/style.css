@@ -19,6 +19,10 @@ body {
   height: 100vh;
 }
 
+.kofi-button {
+  cursor: pointer;
+}
+
 /* header */
 #app .el-header {
   padding: 0;

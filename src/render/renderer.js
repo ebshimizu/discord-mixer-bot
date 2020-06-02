@@ -5,9 +5,14 @@ const ElementUI = require('element-ui');
 const locale = require('element-ui/lib/locale/lang/en');
 const { getVersion } = require('electron').remote.app;
 const dialog = require('electron').remote.dialog;
+const shell = require('electron').remote.shell;
 const path = require('path');
 
 const { ACTION } = require('../store/actions');
+
+function openKofi() {
+  shell.openExternal('https://ko-fi.com/E1E2KHZ3');
+}
 
 Vue.use(ElementUI, { locale });
 Vue.use(Vuex);
@@ -53,6 +58,7 @@ const app = new Vue({
       if (key === 'export-cues') this.exportCues();
       else if (key === 'import-cues') this.importCues(false);
       else if (key === 'append-cues') this.importCues(true);
+      else if (key === 'about-app') this.showAbout();
     },
     exportCues() {
       dialog
@@ -83,6 +89,16 @@ const app = new Vue({
             });
           }
         });
+    },
+    showAbout() {
+      this.$alert(
+        "App written by Falindrith.<br /><a class='kofi-button' onclick='openKofi()'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi2.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>",
+        'About',
+        {
+          dangerouslyUseHTMLString: true,
+          confirmButtonText: 'OK'
+        }
+      );
     },
   },
 });

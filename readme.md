@@ -4,6 +4,9 @@ A simple two scene sound mixer that outputs through a Discord bot.
 
 ![discord-mixer-bot interface](https://i.imgur.com/qqbsyix.png)
 
+Like the project? Send a tip!
+[![ko-fi](https://www.ko-fi.com/img/donate_sm.png)](https://ko-fi.com/E1E2KHZ3)
+
 ## What is this?
 
 This is a sound mixer that outputs music or sounds through a Discord bot. I built this bot to provide music for online D&D games because I didn't like the other options available to me.

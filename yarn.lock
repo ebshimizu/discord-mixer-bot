@@ -17,10 +17,10 @@
     http-response-object "^3.0.1"
     parse-cache-control "^1.0.1"
 
-"@descript/web-audio-js@^0.15.1":
-  version "0.15.1"
-  resolved "https://registry.yarnpkg.com/@descript/web-audio-js/-/web-audio-js-0.15.1.tgz#7a56ed06d4d5d56bf3b2393bf75938fbc717954d"
-  integrity sha512-8yK7gzSVXYKL8Di4SSHVlkRNzbwTSFHxzvGyYkNEm67TUxibp7vF7gYUJI/YqrHRMASH5UEE65Xwg27uQc1apw==
+"@descript/web-audio-js@^0.15.2":
+  version "0.15.2"
+  resolved "https://registry.yarnpkg.com/@descript/web-audio-js/-/web-audio-js-0.15.2.tgz#e3a3cea462155a6eeb287c6b0c6ed5cc5dae1fff"
+  integrity sha512-7zVIcbcfNWWDZlEhi6Fv5wN/VHIzZQu5lW6uB2PK+C51tYucsmdjF99YydNu/v1SK5QnTA0aiESd7sZKXbt58A==
   dependencies:
     audio-type "^1.0.2"
     biquad-coeffs-webaudio "^1.2.0"

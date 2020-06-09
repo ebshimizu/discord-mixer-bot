@@ -191,6 +191,12 @@ module.exports = {
       stageCue(id) {
         this.$store.dispatch(ACTION.STAGE_CUE, this.$store.state.cues[id]);
       },
+      appendCue(id) {
+        this.$store.dispatch(
+          ACTION.AUDIO_APPEND_CUE,
+          this.$store.state.cues[id]
+        );
+      },
       deleteCue(id) {
         const cue = this.$store.state.cues[id];
         this.$alert(
@@ -290,6 +296,11 @@ module.exports = {
                 ),
                 h(
                   'el-dropdown-item',
+                  { nativeOn: { click: () => self.appendCue(data.id) } },
+                  ['Append to Staging']
+                ),
+                h(
+                  'el-dropdown-item',
                   {
                     props: { disabled: this.locked },
                     nativeOn: { click: () => self.updateFromStaging(data.id) },
@@ -339,7 +350,13 @@ module.exports = {
                 type: 'primary',
                 disabled: this.locked,
               },
-              nativeOn: { click: () => this.stageCue(data.id) },
+              nativeOn: {
+                click: () => self.stageCue(data.id),
+                contextmenu: (e) => {
+                  e.preventDefault();
+                  self.appendCue(data.id);
+                },
+              },
             },
             []
           ),

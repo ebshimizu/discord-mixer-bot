@@ -382,6 +382,25 @@ module.exports = {
       // update the store
       context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
     },
+    [ACTION.AUDIO_APPEND_CUE](context, cue) {
+      // this time we don't clear the stuff in staged.
+      const useCache = cue.preloaded.length > 0;
+
+      for (let i = 0; i < cue.sources.length; i++) {
+        const src = cue.sources[i];
+
+        // otherwise load normally
+        audioEngine.stageResource(src.locator, src.type, {
+          volume: src.volume,
+          loop: src.loop,
+          cacheId: useCache ? cue.preloaded[i] : null,
+          name: src.name,
+        });
+      }
+
+      // update the store
+      context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
+    },
     [ACTION.DELETE_CUE](context, id) {
       context.commit(MUTATION.DELETE_CUE, id);
     },

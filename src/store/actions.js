@@ -22,6 +22,7 @@ const ACTION = {
   AUDIO_UNLOAD_CUE: 'Unload Cue',
   AUDIO_IMPORT_CUES: 'Import Cues',
   AUDIO_UNLOAD_CACHE: 'Unload Cache',
+  AUDIO_APPEND_CUE: 'Append Cue',
   AUDIO_STAGE_YOUTUBE: 'Stage YouTube Video',
   DRAIN_MESSAGE_QUEUE: 'Drain Message Queue'
 };

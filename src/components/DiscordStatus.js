@@ -17,6 +17,7 @@ const template = `
         <div class="selector">
           <el-cascader
             :options="channels"
+            placeholder="Select a Voice Channel"
             v-model="selectedOptions">
           </el-cascader>
         </div>

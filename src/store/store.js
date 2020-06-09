@@ -410,6 +410,9 @@ module.exports = {
 
       if (duplexStream) duplexStream.destroy();
 
+      // clean up audio cache too
+      audioEngine.deleteFileCache();
+
       // final app close persistence
       eStore.set('masterVolume', context.state.audio.masterVolume);
       eStore.set('fadeTime', context.state.customFadeTime);

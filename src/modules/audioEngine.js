@@ -30,15 +30,15 @@ const SourceType = {
   URL: 'url',
   YOUTUBE: 'youtube',
 };
-
 class AudioSource {
-  constructor(context, locator, type, id, buffer = null, opts = {}) {
+  constructor(context, locator, type, id, cache, buffer = null, opts = {}) {
     // eventually type will indicate url or file and handle appropriately
     this._id = id;
     this._status = ResourceStatus.INIT;
     this._locator = locator;
     this._type = type;
     this._name = this._id;
+    this._cache = cache;
 
     // extras
     this._opts = opts;
@@ -59,6 +59,7 @@ class AudioSource {
     this._srcNode = null;
     this._tmpFileLocation = path.join(
       app.getPath('userData'),
+      'audioCache',
       `${this._id}.tmp.wav`
     );
 
@@ -119,33 +120,52 @@ class AudioSource {
     }
 
     // starts the loading process
-    console.log(`Loading media from ${this._locator}...`);
+    if (this._locator in this._cache) {
+      // skip to loading file if in cache
+      this._tmpFileLocation = this._cache[this._locator];
 
-    // assumes file for now
-    this.setStatus(ResourceStatus.TRANS);
-    const self = this;
+      console.log(
+        `Loading${this._locator} from cache ${this._tmpFileLocation}`
+      );
+      this.onTranscodeComplete(false);
+    } else {
+      console.log(`Loading media from ${this._locator}...`);
 
-    ffmpeg(this._locator)
-      .toFormat('wav')
-      .outputOptions(['-ac 2', '-ar 48000', '-reconnect 1'])
-      .save(this._tmpFileLocation)
-      .on('error', function (err) {
-        console.log(err);
-        self.setStatus(ResourceStatus.ERROR);
+      // assumes file for now
+      this.setStatus(ResourceStatus.TRANS);
+      const self = this;
 
-        if (self._onError) self._onError(self._id, err);
-      })
-      .on('progress', console.log)
-      .on('end', function () {
-        self.setStatus(ResourceStatus.BUFFER);
-        fs.readFile(self._tmpFileLocation, (err, data) => {
-          self._context.decodeAudioData(data).then((audioBuffer) => {
-            self._audioBuffer = audioBuffer;
-            self.setStatus(ResourceStatus.READY);
-            setTimeout(() => fs.unlink(self._tmpFileLocation), 1000);
-          });
-        });
+      ffmpeg(this._locator)
+        .toFormat('wav')
+        .outputOptions(['-ac 2', '-ar 48000', '-reconnect 1'])
+        .save(this._tmpFileLocation)
+        .on('error', function (err) {
+          console.log(err);
+          self.setStatus(ResourceStatus.ERROR);
+
+          if (self._onError) self._onError(self._id, err);
+        })
+        .on('progress', console.log)
+        .on('end', () => self.onTranscodeComplete(true));
+    }
+  }
+
+  onTranscodeComplete(cache = true) {
+    this.setStatus(ResourceStatus.BUFFER);
+
+    if (cache) {
+      // if it's already in here, we just replace it
+      this._cache[this._locator] = this._tmpFileLocation;
+    }
+
+    fs.readFile(this._tmpFileLocation, (err, data) => {
+      this._context.decodeAudioData(data).then((audioBuffer) => {
+        this._audioBuffer = audioBuffer;
+        this.setStatus(ResourceStatus.READY);
+        // don't delete, we caching now
+        // setTimeout(() => fs.unlink(this._tmpFileLocation), 1000);
       });
+    });
   }
 
   play() {
@@ -219,6 +239,11 @@ class AudioEngine {
     // the preloaded sources cache
     this._cache = {};
 
+    // the processed files cache
+    fs.ensureDirSync(path.join(app.getPath('userData'), 'audioCache'));
+    fs.emptyDirSync(path.join(app.getPath('userData'), 'audioCache'));
+    this._fileCache = {};
+
     // offline test
     // this._context.pipe(new Speaker({ sampleRate: 48000 }));
     this._context.resume();
@@ -277,6 +302,11 @@ class AudioEngine {
   deleteCache() {
     // byeeeeeeeee
     this._cache = {};
+  }
+
+  deleteFileCache() {
+    fs.emptyDirSync(path.join(app.getPath('userData'), 'audioCache'));
+    this._fileCache = {};
   }
 
   getSource(id) {
@@ -382,6 +412,7 @@ class AudioEngine {
       locator,
       type,
       uuidv4(),
+      this._fileCache,
       srcBuffer,
       srcOpts
     );
@@ -407,6 +438,7 @@ class AudioEngine {
         src._locator,
         src._type,
         uuidv4(),
+        this._fileCache,
         src._audioBuffer,
         { name: src._name }
       );
@@ -426,7 +458,13 @@ class AudioEngine {
       if (this._cache[id]._locator === locator) return id;
     }
 
-    const src = new AudioSource(this._context, locator, type, uuidv4());
+    const src = new AudioSource(
+      this._context,
+      locator,
+      type,
+      uuidv4(),
+      this._fileCache
+    );
     src._onProgress = this._onSrcProgress;
     src._onError = this._onSrcError;
     src._onStatusChange = this._onSrcStatusChange;

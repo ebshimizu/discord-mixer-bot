@@ -16,9 +16,11 @@ const Speaker = require('speaker');
 const fs = require('fs-extra');
 const { app } = require('electron');
 const path = require('path');
+const ytdl = require('ytdl-core');
 
 const ResourceStatus = {
   INIT: 'Initializing',
+  FETCH: 'Connecting',
   TRANS: 'Transcoding',
   BUFFER: 'Buffering',
   READY: 'Ready',
@@ -30,6 +32,30 @@ const SourceType = {
   URL: 'url',
   YOUTUBE: 'youtube',
 };
+
+// borrowed right out of
+// https://github.com/amishshah/ytdl-core-discord/blob/master/index.js
+function filter(format) {
+  return (
+    format.codecs === 'opus' &&
+    format.container === 'webm' &&
+    format.audioSampleRate == 48000
+  );
+}
+
+function nextBestFormat(formats) {
+  formats = formats
+    .filter((format) => format.audioBitrate)
+    .sort((a, b) => b.audioBitrate - a.audioBitrate);
+
+  const preferred = formats.filter(filter);
+  if (preferred.length > 0) {
+    return preferred[0];
+  } else {
+    return formats.find((format) => !format.bitrate) || formats[0];
+  }
+}
+
 class AudioSource {
   constructor(context, locator, type, id, cache, buffer = null, opts = {}) {
     // eventually type will indicate url or file and handle appropriately
@@ -125,17 +151,37 @@ class AudioSource {
       this._tmpFileLocation = this._cache[this._locator];
 
       console.log(
-        `Loading${this._locator} from cache ${this._tmpFileLocation}`
+        `Loading ${this._locator} from cache ${this._tmpFileLocation}`
       );
       this.onTranscodeComplete(false);
     } else {
       console.log(`Loading media from ${this._locator}...`);
+      const self = this;
 
+      // fun times, need to locate the youtube video
+      // bit of duplication with the staging ui component
+      if (this._type === SourceType.YOUTUBE) {
+        this.setStatus(ResourceStatus.FETCH);
+        ytdl.getInfo(this._locator, (err, info) => {
+          if (err) {
+            console.log(err);
+            self.setStatus(ResourceStatus.ERROR);
+          } else {
+            self.transcode(nextBestFormat(info.formats).url);
+          }
+        });
+      } else {
+        self.transcode(this._locator);
+      }
+    }
+  }
+
+  transcode(locator) {
       // assumes file for now
       this.setStatus(ResourceStatus.TRANS);
       const self = this;
 
-      ffmpeg(this._locator)
+      ffmpeg(locator)
         .toFormat('wav')
         .outputOptions(['-ac 2', '-ar 48000', '-reconnect 1'])
         .save(this._tmpFileLocation)
@@ -147,7 +193,6 @@ class AudioSource {
         })
         .on('progress', console.log)
         .on('end', () => self.onTranscodeComplete(true));
-    }
   }
 
   onTranscodeComplete(cache = true) {

@@ -492,7 +492,7 @@ module.exports = {
       // intended for use with other actions that replace cues
       audioEngine.deleteCache();
     },
-    [ACTION.AUDIO_STAGE_YOUTUBE](context, { url, title }) {
+    [ACTION.AUDIO_STAGE_YOUTUBE](context, { url, title, originalUrl }) {
       audioEngine.stageResource(url, SourceType.YOUTUBE, { name: title });
       context.commit(MUTATION.AUDIO_UPDATE_STAGED, audioEngine.stagedSources);
     },

@@ -2,23 +2,6 @@ const { dialog } = require('electron').remote;
 const { ACTION } = require('../store/actions');
 const ytdl = require('ytdl-core');
 
-// borrowed right out of
-// https://github.com/amishshah/ytdl-core-discord/blob/master/index.js
-function filter(format) {
-  return (
-    format.codecs === 'opus' &&
-    format.container === 'webm' &&
-    format.audioSampleRate == 48000
-  );
-}
-
-function nextBestFormat(formats) {
-  formats = formats
-    .filter((format) => format.audioBitrate)
-    .sort((a, b) => b.audioBitrate - a.audioBitrate);
-  return formats.find((format) => !format.bitrate) || formats[0];
-}
-
 const template = `
 <div
   id="staging"
@@ -91,7 +74,7 @@ module.exports = {
           fade: '',
         },
         labelWidth: '100px',
-        dragging: false
+        dragging: false,
       };
     },
     computed: {
@@ -144,13 +127,12 @@ module.exports = {
                 if (err) {
                   // show an error
                   console.log(err);
+                } else {
+                  this.$store.dispatch(ACTION.AUDIO_STAGE_YOUTUBE, {
+                    url: value.value,
+                    title: `[YouTube] ${info.title}`,
+                  });
                 }
-
-                const url = nextBestFormat(info.formats).url;
-                this.$store.dispatch(ACTION.AUDIO_STAGE_YOUTUBE, {
-                  url,
-                  title: `[YouTube] ${info.title}`,
-                });
               });
             }
           })

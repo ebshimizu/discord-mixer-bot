@@ -302,7 +302,7 @@ body {
 #app .cue-item {
   display: flex;
   height: 100%;
-  width: 100%;
+  width: 90%;
 }
 
 #app .cue-item.header {
@@ -317,13 +317,14 @@ body {
 }
 
 #app .cue-item.leaf .el-dropdown {
-  width: 100%;
+  width: 79%;
   display: flex;
   align-content: center;
   justify-content: left;
   align-items: center;
   color: var(--main-font-color);
   font-size: 14px;
+  overflow: hidden;
 }
 
 #app .el-tree-node__content:hover,

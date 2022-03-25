@@ -13,7 +13,7 @@
   "author": "Falindrith",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^9.0.0",
+    "electron": "^13.6.6",
     "electron-builder": "^22.6.0",
     "vue-devtools": "^5.1.3"
   },

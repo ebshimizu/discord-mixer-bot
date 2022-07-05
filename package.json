@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@descript/web-audio-js": "^0.15.2",
-    "@discordjs/opus": "^0.3.2",
+    "@discordjs/opus": "^0.8.0",
     "discord.js": "^12.2.0",
     "easy-ffmpeg": "^0.0.15",
     "electron-store": "^5.1.1",
